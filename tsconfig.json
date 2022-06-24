@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "module": "esnext",
+    "noImplicitAny": true,
+    "esModuleInterop": true,
+    "sourceMap": true,
+    "moduleResolution": "node",
+    "outDir": "./build",
+    "target": "es2020"
+  },
+  "include": ["src/**/*"],
+  "ts-node": {
+    "files": true
+  }
+}

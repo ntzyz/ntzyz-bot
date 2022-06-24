@@ -1,0 +1,21 @@
+{
+  "type": "module",
+  "scripts": {
+    "dev": "nodemon --ext ts --exec 'node --loader ts-node/esm --experimental-specifier-resolution=node src/index.ts'"
+  },
+  "dependencies": {
+    "@genshin-kit/core": "^2.6.2",
+    "body-parse": "^0.1.0",
+    "express": "^4.17.2",
+    "node-fetch": "^3.1.0",
+    "redis": "^4.1.0",
+    "telegraf": "^4.5.2",
+    "typescript": "^4.5.4"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.13",
+    "nodemon": "^2.0.15",
+    "prettier": "^2.5.1",
+    "ts-node": "^10.4.0"
+  }
+}

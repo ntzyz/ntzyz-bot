@@ -8,6 +8,7 @@ import genshin_box from './genshin-box'
 import genshin_my from './genshin-my'
 import genshin_events from './genshin-events'
 import genshin_alert from './genshin-alert'
+import genshin_daily_notification from './genshin-daily-notification'
 
 export default {
   id,
@@ -20,4 +21,5 @@ export default {
   genshin_my,
   genshin_events,
   genshin_alert,
+  genshin_daily_notification,
 }

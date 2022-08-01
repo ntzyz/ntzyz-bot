@@ -63,7 +63,7 @@ const handler: CommandHandler = async (ctx) => {
             try {
               last_fetched_at = now
               const response = await fetch(
-                `https://api-takumi-record.mihoyo.com/game_record/app/genshin/api/dailyNote?role_id=${user_info.uid}&server=cn_gf01`,
+                `https://api-takumi-mihoyo.reverse-proxy.074ec6f331c7.uk/game_record/app/genshin/api/dailyNote?role_id=${user_info.uid}&server=cn_gf01`,
                 {
                   headers: {
                     Cookie: user_info.cookie,
@@ -119,16 +119,14 @@ const handler: CommandHandler = async (ctx) => {
               `当前状态：`,
               `• 原萃树脂：${(Number(last_fetched_result.resin_recovery_time) / 60 - duration_by_minutes).toFixed(
                 1,
-              )} 分钟（约为 ${last_fetched_result.current_resin + Math.floor(duration_by_minutes / 8)}，${
-                is_alerting.resin ? '已报警' : '未报警'
+              )} 分钟（约为 ${last_fetched_result.current_resin + Math.floor(duration_by_minutes / 8)}，${is_alerting.resin ? '已报警' : '未报警'
               }）`,
               `• 洞天宝钱：${(Number(last_fetched_result.home_coin_recovery_time) / 60 - duration_by_minutes).toFixed(
                 1,
               )} 分钟（${is_alerting.home_coin ? '已报警' : '未报警'}）`,
-              `• 参量质变仪：${
-                last_fetched_result.transformer.recovery_time.reached
-                  ? `冷却完成（${is_alerting.transformer ? '已报警' : '未报警'}）`
-                  : `冷却中（剩余约 ${transformer_remaining_minutes.toFixed(1)} 分钟）`
+              `• 参量质变仪：${last_fetched_result.transformer.recovery_time.reached
+                ? `冷却完成（${is_alerting.transformer ? '已报警' : '未报警'}）`
+                : `冷却中（剩余约 ${transformer_remaining_minutes.toFixed(1)} 分钟）`
               }`,
               '',
             )
@@ -143,10 +141,9 @@ const handler: CommandHandler = async (ctx) => {
               `• 洞天宝钱：${(Number(last_fetched_result.home_coin_recovery_time) / 60 - duration_by_minutes).toFixed(
                 1,
               )} 分钟`,
-              `• 参量质变仪：${
-                last_fetched_result.transformer.recovery_time.reached
-                  ? '冷却完成'
-                  : `冷却中（剩余约 ${transformer_remaining_minutes.toFixed(1)} 分钟）`
+              `• 参量质变仪：${last_fetched_result.transformer.recovery_time.reached
+                ? '冷却完成'
+                : `冷却中（剩余约 ${transformer_remaining_minutes.toFixed(1)} 分钟）`
               }`,
               '',
             )
@@ -159,12 +156,10 @@ const handler: CommandHandler = async (ctx) => {
           }
 
           messageLines.push(
-            `• 完成日常：${last_fetched_result.finished_task_num}/${last_fetched_result.total_task_num}，${
-              last_fetched_result.is_extra_task_reward_received ? '已' : '未'
+            `• 完成日常：${last_fetched_result.finished_task_num}/${last_fetched_result.total_task_num}，${last_fetched_result.is_extra_task_reward_received ? '已' : '未'
             }领工资`,
             `• 周常折扣：${last_fetched_result.remain_resin_discount_num}/${last_fetched_result.resin_discount_num_limit}`,
-            `• 探索：${last_fetched_result.current_expedition_num}（${
-              last_fetched_result.expeditions.filter((el) => el.status === 'Ongoing').length
+            `• 探索：${last_fetched_result.current_expedition_num}（${last_fetched_result.expeditions.filter((el) => el.status === 'Ongoing').length
             } 个进行中）`,
             '',
           )

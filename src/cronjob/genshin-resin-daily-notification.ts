@@ -17,7 +17,7 @@ async function send_notification(bot: Telegraf, telegram_uid: number) {
 
   const user_info = query_genshin_info(telegram_uid)
   const response = await fetch(
-    `https://api-takumi-record.mihoyo.com/game_record/app/genshin/api/dailyNote?role_id=${user_info.uid}&server=cn_gf01`,
+    `https://api-takumi-mihoyo.reverse-proxy.074ec6f331c7.uk/game_record/app/genshin/api/dailyNote?role_id=${user_info.uid}&server=cn_gf01`,
     {
       headers: {
         Cookie: user_info.cookie,

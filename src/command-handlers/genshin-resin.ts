@@ -33,7 +33,7 @@ const handler: CommandHandler = async (ctx) => {
 
   try {
     const response = await fetch(
-      `https://api-takumi-record.mihoyo.com/game_record/app/genshin/api/dailyNote?role_id=${user_info.uid}&server=cn_gf01`,
+      `https://api-takumi-mihoyo.reverse-proxy.074ec6f331c7.uk/game_record/app/genshin/api/dailyNote?role_id=${user_info.uid}&server=cn_gf01`,
       {
         headers: {
           Cookie: user_info.cookie,
@@ -53,19 +53,17 @@ const handler: CommandHandler = async (ctx) => {
     ctx.reply(
       [
         `原粹树脂：${data.data.current_resin}/${data.data.max_resin}` +
-          (data.data.current_resin !== data.data.max_resin
-            ? `（${seconds_to_human_readable(Number(data.data.resin_recovery_time))}）`
-            : ''),
-        `完成日常：${data.data.finished_task_num}/${data.data.total_task_num}，${
-          data.data.is_extra_task_reward_received ? '已' : '未'
+        (data.data.current_resin !== data.data.max_resin
+          ? `（${seconds_to_human_readable(Number(data.data.resin_recovery_time))}）`
+          : ''),
+        `完成日常：${data.data.finished_task_num}/${data.data.total_task_num}，${data.data.is_extra_task_reward_received ? '已' : '未'
         }领工资`,
         `洞天宝钱：${data.data.current_home_coin}/${data.data.max_home_coin}` +
-          (data.data.current_resin !== data.data.max_resin
-            ? `（${seconds_to_human_readable(Number(data.data.home_coin_recovery_time))}）`
-            : ''),
+        (data.data.current_resin !== data.data.max_resin
+          ? `（${seconds_to_human_readable(Number(data.data.home_coin_recovery_time))}）`
+          : ''),
         `周常折扣：${data.data.remain_resin_discount_num}/${data.data.resin_discount_num_limit}`,
-        `探索：${data.data.current_expedition_num}（${
-          data.data.expeditions.filter((el) => el.status === 'Ongoing').length
+        `探索：${data.data.current_expedition_num}（${data.data.expeditions.filter((el) => el.status === 'Ongoing').length
         } 个进行中）`,
       ].join('\n'),
       { parse_mode: 'HTML', reply_to_message_id: ctx.message.message_id },

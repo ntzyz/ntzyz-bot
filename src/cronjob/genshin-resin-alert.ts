@@ -52,9 +52,9 @@ export async function genshin_resin_alert_interval(bot: Telegraf) {
     if (
       last_fetched_result &&
       safe_string_to_number(last_fetched_result.resin_recovery_time) / 60 - duration_by_minutes >
-        alert_duration_before_reach &&
+      alert_duration_before_reach &&
       safe_string_to_number(last_fetched_result.home_coin_recovery_time) / 60 - duration_by_minutes >
-        alert_duration_before_reach &&
+      alert_duration_before_reach &&
       !last_fetched_result.transformer.recovery_time.reached
     ) {
       await redis.set(`${GENSHIN_POLLING_USER_IS_ALERTING_PREFIX}::${uid}`, '{}')
@@ -65,7 +65,7 @@ export async function genshin_resin_alert_interval(bot: Telegraf) {
       try {
         const user_info = query_genshin_info(uid)
         const response = await fetch(
-          `https://api-takumi-record.mihoyo.com/game_record/app/genshin/api/dailyNote?role_id=${user_info.uid}&server=cn_gf01`,
+          `https://api-takumi-mihoyo.reverse-proxy.074ec6f331c7.uk/game_record/app/genshin/api/dailyNote?role_id=${user_info.uid}&server=cn_gf01`,
           {
             headers: {
               Cookie: user_info.cookie,
@@ -90,9 +90,9 @@ export async function genshin_resin_alert_interval(bot: Telegraf) {
 
         if (
           safe_string_to_number(last_fetched_result.resin_recovery_time) / 60 - duration_by_minutes >
-            alert_duration_before_reach &&
+          alert_duration_before_reach &&
           safe_string_to_number(last_fetched_result.home_coin_recovery_time) / 60 - duration_by_minutes >
-            alert_duration_before_reach &&
+          alert_duration_before_reach &&
           !last_fetched_result.transformer.recovery_time.reached
         ) {
           await redis.set(`${GENSHIN_POLLING_USER_IS_ALERTING_PREFIX}::${uid}`, '{}')
@@ -114,15 +114,14 @@ export async function genshin_resin_alert_interval(bot: Telegraf) {
     // 体力
     if (
       safe_string_to_number(last_fetched_result.resin_recovery_time) / 60 - duration_by_minutes <=
-        alert_duration_before_reach &&
+      alert_duration_before_reach &&
       !is_alerting.resin
     ) {
       console.log('resin alerting')
       is_alerting.resin = true
       bot.telegram.sendMessage(
         genshin_alert_notification_chat_id,
-        `<a href="tg://user?id=${uid}">@${
-          telegramUserInfo.user.username || telegramUserInfo.user.first_name
+        `<a href="tg://user?id=${uid}">@${telegramUserInfo.user.username || telegramUserInfo.user.first_name
         }</a> 距离体力恢复还有约 ${(
           safe_string_to_number(last_fetched_result.resin_recovery_time) / 60 -
           duration_by_minutes
@@ -135,15 +134,14 @@ export async function genshin_resin_alert_interval(bot: Telegraf) {
     // 洞天宝钱
     if (
       safe_string_to_number(last_fetched_result.home_coin_recovery_time) / 60 - duration_by_minutes <=
-        alert_duration_before_reach &&
+      alert_duration_before_reach &&
       !is_alerting.home_coin
     ) {
       console.log('home_coin alerting')
       is_alerting.home_coin = true
       bot.telegram.sendMessage(
         genshin_alert_notification_chat_id,
-        `<a href="tg://user?id=${uid}">@${
-          telegramUserInfo.user.username || telegramUserInfo.user.first_name
+        `<a href="tg://user?id=${uid}">@${telegramUserInfo.user.username || telegramUserInfo.user.first_name
         }</a> 距离洞天宝钱溢出恢复还有约 ${(
           safe_string_to_number(last_fetched_result.home_coin_recovery_time) / 60 -
           duration_by_minutes
@@ -159,8 +157,7 @@ export async function genshin_resin_alert_interval(bot: Telegraf) {
       console.log('transformer alerting')
       bot.telegram.sendMessage(
         genshin_alert_notification_chat_id,
-        `<a href="tg://user?id=${uid}">@${
-          telegramUserInfo.user.username || telegramUserInfo.user.first_name
+        `<a href="tg://user?id=${uid}">@${telegramUserInfo.user.username || telegramUserInfo.user.first_name
         }</a> 参量质变仪冷却完了，可以上线倒垃圾了`,
         {
           parse_mode: 'HTML',

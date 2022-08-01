@@ -1,0 +1,13 @@
+diff --git a/node_modules/@genshin-kit/core/lib/module/_getApiEndpoint.js b/node_modules/@genshin-kit/core/lib/module/_getApiEndpoint.js
+index 88f3302..d990ec4 100644
+--- a/node_modules/@genshin-kit/core/lib/module/_getApiEndpoint.js
++++ b/node_modules/@genshin-kit/core/lib/module/_getApiEndpoint.js
+@@ -7,7 +7,7 @@ function _getApiEndpoint() {
+             return 'https://bbs-api-os.mihoyo.com/game_record/genshin/api/';
+         case 'cn':
+         default:
+-            return 'https://api-takumi-record.mihoyo.com/game_record/app/genshin/api/';
++            return 'https://api-takumi-mihoyo.reverse-proxy.074ec6f331c7.uk/game_record/app/genshin/api/';
+     }
+ }
+ exports._getApiEndpoint = _getApiEndpoint;

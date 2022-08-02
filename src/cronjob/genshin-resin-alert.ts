@@ -114,42 +114,46 @@ export async function genshin_resin_alert_interval(bot: Telegraf) {
     // 体力
     if (
       safe_string_to_number(last_fetched_result.resin_recovery_time) / 60 - duration_by_minutes <=
-      alert_duration_before_reach &&
-      !is_alerting.resin
+      alert_duration_before_reach
     ) {
-      console.log('resin alerting')
-      is_alerting.resin = true
-      bot.telegram.sendMessage(
-        genshin_alert_notification_chat_id,
-        `<a href="tg://user?id=${uid}">@${telegramUserInfo.user.username || telegramUserInfo.user.first_name
-        }</a> 距离体力恢复还有约 ${(
-          safe_string_to_number(last_fetched_result.resin_recovery_time) / 60 -
-          duration_by_minutes
-        ).toFixed(2)} 分钟，可以上线干活了`,
-        {
-          parse_mode: 'HTML',
-        },
-      )
+      if (!is_alerting.resin) {
+        is_alerting.resin = true
+        bot.telegram.sendMessage(
+          genshin_alert_notification_chat_id,
+          `<a href="tg://user?id=${uid}">@${telegramUserInfo.user.username || telegramUserInfo.user.first_name
+          }</a> 距离体力恢复还有约 ${(
+            safe_string_to_number(last_fetched_result.resin_recovery_time) / 60 -
+            duration_by_minutes
+          ).toFixed(2)} 分钟，可以上线干活了`,
+          {
+            parse_mode: 'HTML',
+          },
+        )
+      }
+    } else {
+      is_alerting.resin = false
     }
+
     // 洞天宝钱
     if (
       safe_string_to_number(last_fetched_result.home_coin_recovery_time) / 60 - duration_by_minutes <=
-      alert_duration_before_reach &&
-      !is_alerting.home_coin
+      alert_duration_before_reach
     ) {
-      console.log('home_coin alerting')
-      is_alerting.home_coin = true
-      bot.telegram.sendMessage(
-        genshin_alert_notification_chat_id,
-        `<a href="tg://user?id=${uid}">@${telegramUserInfo.user.username || telegramUserInfo.user.first_name
-        }</a> 距离洞天宝钱溢出恢复还有约 ${(
-          safe_string_to_number(last_fetched_result.home_coin_recovery_time) / 60 -
-          duration_by_minutes
-        ).toFixed(1)} 分钟，可以上线挥霍了`,
-        {
-          parse_mode: 'HTML',
-        },
-      )
+      if (!is_alerting.home_coin
+      ) {
+        is_alerting.home_coin = true
+        bot.telegram.sendMessage(
+          genshin_alert_notification_chat_id,
+          `<a href="tg://user?id=${uid}">@${telegramUserInfo.user.username || telegramUserInfo.user.first_name
+          }</a> 距离洞天宝钱溢出恢复还有约 ${(
+            safe_string_to_number(last_fetched_result.home_coin_recovery_time) / 60 -
+            duration_by_minutes
+          ).toFixed(1)} 分钟，可以上线挥霍了`,
+          {
+            parse_mode: 'HTML',
+          },
+        )
+      }
     }
     // 垃圾桶
     if (last_fetched_result.transformer.recovery_time.reached && !is_alerting.transformer) {

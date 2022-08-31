@@ -46,6 +46,14 @@ const genshin_nick_map: Record<string, string[]> = {
   莫娜: ['半部讨龙真君', 'mona', '阿斯托洛吉斯·莫娜·梅姬斯图斯'],
   凯亚: ['矿工头子', 'kaeya'],
   八重神子: ['八重狐狸', '神子', 'yae', 'miko'],
+  神里绫人: ['ayato', '0人', '零人', '大舅哥'],
+  久岐忍: ['97shinobu', 'shinobu', '阿忍', '97忍'],
+  鹿野院平藏: ['平藏', 'heizou'],
+  提纳里: ['tighnari'],
+  柯莱: ['collei'],
+  多莉: ['dori', '奸商'],
+  赛诺: ['cyno'],
+  妮露: ['nilou', 'deviltrigger'],
 }
 
 export function get_genshin_character_name(nick: string) {

@@ -139,8 +139,7 @@ export async function genshin_resin_alert_interval(bot: Telegraf) {
       safe_string_to_number(last_fetched_result.home_coin_recovery_time) / 60 - duration_by_minutes <=
       alert_duration_before_reach
     ) {
-      if (!is_alerting.home_coin
-      ) {
+      if (!is_alerting.home_coin) {
         is_alerting.home_coin = true
         bot.telegram.sendMessage(
           genshin_alert_notification_chat_id,
@@ -153,6 +152,8 @@ export async function genshin_resin_alert_interval(bot: Telegraf) {
             parse_mode: 'HTML',
           },
         )
+      } else {
+        is_alerting.home_coin = false
       }
     }
     // 垃圾桶

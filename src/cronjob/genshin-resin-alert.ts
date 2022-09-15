@@ -152,9 +152,9 @@ export async function genshin_resin_alert_interval(bot: Telegraf) {
             parse_mode: 'HTML',
           },
         )
-      } else {
-        is_alerting.home_coin = false
       }
+    } else {
+      is_alerting.home_coin = false
     }
     // 垃圾桶
     if (last_fetched_result.transformer.recovery_time.reached && !is_alerting.transformer) {

@@ -54,6 +54,7 @@ const genshin_nick_map: Record<string, string[]> = {
   多莉: ['dori', '奸商'],
   赛诺: ['cyno'],
   妮露: ['nilou', 'deviltrigger'],
+  纳西妲: ['naxida', 'nahida', '羽毛球'],
 }
 
 export function get_genshin_character_name(nick: string) {

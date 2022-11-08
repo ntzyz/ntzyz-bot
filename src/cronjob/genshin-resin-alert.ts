@@ -66,15 +66,15 @@ export async function genshin_resin_alert_interval(bot: Telegraf) {
           body: [
             `estimated_resin_recovery_time,uid=${user_info.uid} value=${Math.max(
               0,
-              safe_string_to_number(last_fetched_result.resin_recovery_time) + (now - last_fetched_at) / 1000,
+              safe_string_to_number(last_fetched_result.resin_recovery_time) - (now - last_fetched_at) / 1000,
             )}`,
             `estimated_coin_recovery_time,uid=${user_info.uid} value=${Math.max(
               0,
-              safe_string_to_number(last_fetched_result.home_coin_recovery_time) + (now - last_fetched_at) / 1000,
+              safe_string_to_number(last_fetched_result.home_coin_recovery_time) - (now - last_fetched_at) / 1000,
             )}`,
             `estimated_transformer_recovery_time,uid=${user_info.uid} value=${Math.max(
               0,
-              format_genshin_transformer_time(last_fetched_result.transformer.recovery_time) +
+              format_genshin_transformer_time(last_fetched_result.transformer.recovery_time) -
                 (now - last_fetched_at) / 1000,
             )}`,
           ].join('\n'),

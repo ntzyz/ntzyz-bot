@@ -12,7 +12,8 @@ const http_server = get_http_server()
 bot.use((ctx, next) => {
   if ((((ctx.message as any)?.text as string) || '').charAt(0) === '/') {
     console.log(
-      `FROM=${ctx.from.first_name}<${ctx.from.id}>; CHAT=${(ctx.chat as any).first_name || (ctx.chat as any).title}<${ctx.chat.id
+      `FROM=${ctx.from.first_name}<${ctx.from.id}>; CHAT=${(ctx.chat as any).first_name || (ctx.chat as any).title}<${
+        ctx.chat.id
       }>; CHAT_TYPE=${ctx.chat.type}; TXT=${(ctx.message as any)?.text}`,
     )
   }
@@ -36,8 +37,8 @@ http_server.post('/v2/updown-bot/:receiverId', (req, res) => webhook_handlers.no
 http_server.post('/v2/telegraf/:receiverId', (req, res) => webhook_handlers.notification_v2_telegraf(bot, req, res))
 
 function run_all_cron_jobs() {
-  genshin_resin_alert_interval(bot).then(console.error)
-  genshin_resin_daily_notification(bot).then(console.error)
+  genshin_resin_alert_interval(bot).catch(console.error)
+  genshin_resin_daily_notification(bot).catch(console.error)
 }
 
 run_all_cron_jobs()

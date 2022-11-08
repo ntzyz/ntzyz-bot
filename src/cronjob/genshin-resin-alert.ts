@@ -1,7 +1,13 @@
 import { Telegraf } from 'telegraf'
 import fetch from 'node-fetch'
-import { digest_mihoyo_ds, get_redis_client, query_genshin_info } from '../utils'
-import { genshin_alert_notification_chat_id } from '../config'
+import {
+  digest_mihoyo_ds,
+  format_genshin_transformer_time,
+  get_genshin_resin,
+  get_redis_client,
+  query_genshin_info,
+} from '../utils'
+import { genshin_alert_notification_chat_id, genshin_stat_influxdb_host } from '../config'
 
 export const GENSHIN_POLLING_TELEGRAM_UID_KEY = 'ntzyz-bot::cronjob::genshin_resin::telegram_uid_list'
 export const GENSHIN_POLLING_USER_LAST_FETCHED_AT_PREFIX = 'ntzyz-bot::cronjob::genshin_resin::last_fetched_at_v2'
@@ -38,6 +44,7 @@ export async function genshin_resin_alert_interval(bot: Telegraf) {
       (await redis.get(`${GENSHIN_POLLING_USER_IS_ALERTING_PREFIX}::${uid}`)) || '{}',
     ) as Partial<Record<'home_coin' | 'resin' | 'transformer', boolean>>
     let last_fetched_result: GenshinImpact.GenshinResinResponse['data'] = null
+    const user_info = query_genshin_info(uid)
 
     try {
       last_fetched_result = JSON.parse(last_fetched_json) as GenshinImpact.GenshinResinResponse['data']
@@ -49,40 +56,45 @@ export async function genshin_resin_alert_interval(bot: Telegraf) {
     const now = Date.now()
     let duration_by_minutes = (now - last_fetched_at) / (1000 * 60)
 
-    if (
-      last_fetched_result &&
-      safe_string_to_number(last_fetched_result.resin_recovery_time) / 60 - duration_by_minutes >
-      alert_duration_before_reach &&
-      safe_string_to_number(last_fetched_result.home_coin_recovery_time) / 60 - duration_by_minutes >
-      alert_duration_before_reach &&
-      !last_fetched_result.transformer.recovery_time.reached
-    ) {
-      await redis.set(`${GENSHIN_POLLING_USER_IS_ALERTING_PREFIX}::${uid}`, '{}')
-      continue
+    if (last_fetched_result) {
+      try {
+        await fetch(`${genshin_stat_influxdb_host}/write?db=genshin`, {
+          method: 'POST',
+          headers: {
+            'content-type': 'text/plain; charset=utf-8',
+          },
+          body: [
+            `estimated_resin_recovery_time,uid=${user_info.uid} value=${
+              last_fetched_result.resin_recovery_time + duration_by_minutes * 60
+            }`,
+            `estimated_coin_recovery_time,uid=${user_info.uid} value=${
+              last_fetched_result.home_coin_recovery_time + duration_by_minutes * 60
+            }`,
+            `estimated_transformer_recovery_time,uid=${user_info.uid} value=${
+              format_genshin_transformer_time(last_fetched_result.transformer.recovery_time) + duration_by_minutes * 60
+            }`,
+          ].join('\n'),
+        })
+      } catch (ex) {
+        console.error('Failed to write latest result to influxdb: ', ex)
+      }
+
+      if (
+        safe_string_to_number(last_fetched_result.resin_recovery_time) / 60 - duration_by_minutes >
+          alert_duration_before_reach &&
+        safe_string_to_number(last_fetched_result.home_coin_recovery_time) / 60 - duration_by_minutes >
+          alert_duration_before_reach &&
+        !last_fetched_result.transformer.recovery_time.reached
+      ) {
+        await redis.set(`${GENSHIN_POLLING_USER_IS_ALERTING_PREFIX}::${uid}`, '{}')
+        continue
+      }
     }
 
     if (last_fetched_at + polling_cold_down <= now || !last_fetched_result) {
       try {
-        const user_info = query_genshin_info(uid)
-        const response = await fetch(
-          `https://api-takumi-mihoyo.reverse-proxy.074ec6f331c7.uk/game_record/app/genshin/api/dailyNote?role_id=${user_info.uid}&server=cn_gf01`,
-          {
-            headers: {
-              Cookie: user_info.cookie,
-              DS: digest_mihoyo_ds(user_info.uid),
-              'x-rpc-app_version': '2.16.1',
-              'x-rpc-client_type': '5',
-            },
-          },
-        )
-        const data = (await response.json()) as GenshinImpact.GenshinResinResponse
-
-        if (data.retcode != 0) {
-          throw new Error('MiHuYo API Error: ' + data.message)
-        }
-
         last_fetched_at = now
-        last_fetched_result = data.data
+        last_fetched_result = await get_genshin_resin(user_info)
         duration_by_minutes = 0
 
         await redis.set(`${GENSHIN_POLLING_USER_LAST_FETCHED_AT_PREFIX}::${uid}`, last_fetched_at)
@@ -90,10 +102,11 @@ export async function genshin_resin_alert_interval(bot: Telegraf) {
 
         if (
           safe_string_to_number(last_fetched_result.resin_recovery_time) / 60 - duration_by_minutes >
-          alert_duration_before_reach &&
+            alert_duration_before_reach &&
           safe_string_to_number(last_fetched_result.home_coin_recovery_time) / 60 - duration_by_minutes >
-          alert_duration_before_reach &&
-          !last_fetched_result.transformer.recovery_time.reached
+            alert_duration_before_reach &&
+          format_genshin_transformer_time(last_fetched_result.transformer.recovery_time) / 60 - duration_by_minutes >
+            alert_duration_before_reach
         ) {
           await redis.set(`${GENSHIN_POLLING_USER_IS_ALERTING_PREFIX}::${uid}`, '{}')
           continue
@@ -120,7 +133,8 @@ export async function genshin_resin_alert_interval(bot: Telegraf) {
         is_alerting.resin = true
         bot.telegram.sendMessage(
           genshin_alert_notification_chat_id,
-          `<a href="tg://user?id=${uid}">@${telegramUserInfo.user.username || telegramUserInfo.user.first_name
+          `<a href="tg://user?id=${uid}">@${
+            telegramUserInfo.user.username || telegramUserInfo.user.first_name
           }</a> 距离体力恢复还有约 ${(
             safe_string_to_number(last_fetched_result.resin_recovery_time) / 60 -
             duration_by_minutes
@@ -143,7 +157,8 @@ export async function genshin_resin_alert_interval(bot: Telegraf) {
         is_alerting.home_coin = true
         bot.telegram.sendMessage(
           genshin_alert_notification_chat_id,
-          `<a href="tg://user?id=${uid}">@${telegramUserInfo.user.username || telegramUserInfo.user.first_name
+          `<a href="tg://user?id=${uid}">@${
+            telegramUserInfo.user.username || telegramUserInfo.user.first_name
           }</a> 距离洞天宝钱溢出恢复还有约 ${(
             safe_string_to_number(last_fetched_result.home_coin_recovery_time) / 60 -
             duration_by_minutes
@@ -156,18 +171,26 @@ export async function genshin_resin_alert_interval(bot: Telegraf) {
     } else {
       is_alerting.home_coin = false
     }
+
     // 垃圾桶
-    if (last_fetched_result.transformer.recovery_time.reached && !is_alerting.transformer) {
-      is_alerting.transformer = true
-      console.log('transformer alerting')
-      bot.telegram.sendMessage(
-        genshin_alert_notification_chat_id,
-        `<a href="tg://user?id=${uid}">@${telegramUserInfo.user.username || telegramUserInfo.user.first_name
-        }</a> 参量质变仪冷却完了，可以上线倒垃圾了`,
-        {
-          parse_mode: 'HTML',
-        },
-      )
+    if (
+      format_genshin_transformer_time(last_fetched_result.transformer.recovery_time) / 60 - duration_by_minutes <=
+      alert_duration_before_reach
+    ) {
+      if (!is_alerting.transformer) {
+        is_alerting.transformer = true
+        bot.telegram.sendMessage(
+          genshin_alert_notification_chat_id,
+          `<a href="tg://user?id=${uid}">@${
+            telegramUserInfo.user.username || telegramUserInfo.user.first_name
+          }</a> 参量质变仪冷却完了，可以上线倒垃圾了`,
+          {
+            parse_mode: 'HTML',
+          },
+        )
+      }
+    } else {
+      is_alerting.transformer = false
     }
 
     await redis.set(`${GENSHIN_POLLING_USER_IS_ALERTING_PREFIX}::${uid}`, JSON.stringify(is_alerting))

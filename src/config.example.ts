@@ -12,6 +12,7 @@ export const redis_url = process.env.NODE_ENV === 'production' ? '<redacted>' : 
 export const genshin_alert_notification_chat_id = process.env.NODE_ENV === 'production' ? 0 : bot_owner
 export const aqi_token = 'redacted'
 export const netease_cloud_music_cookie = 'redacted'
+export const genshin_stat_influxdb_host = 'whatever://redacted:1048576'
 export const genshin_user_info: Record<string, GenshinUserInfo> = {
   [bot_owner]: {
     cookie: 'redacted',

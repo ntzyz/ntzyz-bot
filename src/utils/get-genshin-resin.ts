@@ -10,7 +10,7 @@ export async function get_genshin_resin(user_info: GenshinUserInfo) {
       headers: {
         Cookie: user_info.cookie,
         DS: digest_mihoyo_ds(user_info.uid),
-        'x-rpc-app_version': '2.16.1',
+        'x-rpc-app_version': '2.37.1',
         'x-rpc-client_type': '5',
       },
     },
@@ -19,7 +19,8 @@ export async function get_genshin_resin(user_info: GenshinUserInfo) {
   const data = (await response.json()) as GenshinImpact.GenshinResinResponse
 
   if (data.retcode != 0) {
-    throw new Error('MiHuYo API Error: ' + data.message)
+    console.error(data)
+    throw new Error(`Failed to call miHoYo API for uid = ${user_info.uid}. Response is: ` + JSON.stringify(data, null, 2))
   }
 
   try {

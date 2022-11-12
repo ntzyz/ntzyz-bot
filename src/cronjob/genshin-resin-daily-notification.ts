@@ -15,29 +15,44 @@ async function send_notification(bot: Telegraf, telegram_uid: number) {
   }
 
   const user_info = query_genshin_info(telegram_uid)
-  const data = await get_genshin_resin(user_info)
+  try {
+    const data = await get_genshin_resin(user_info)
 
-  bot.telegram.sendMessage(
-    genshin_alert_notification_chat_id,
-    [
-      `<a href="tg://user?id=${telegram_uid}">@${
-        telegramUserInfo.user.username || telegramUserInfo.user.first_name
-      }</a> 每日定时通知：`,
-      `• 原粹树脂：${data.current_resin}/${data.max_resin}`,
-      `• 完成日常：${data.finished_task_num}/${data.total_task_num}，${
-        data.is_extra_task_reward_received ? '已' : '未'
-      }领工资`,
-      `• 洞天宝钱：${data.current_home_coin}/${data.max_home_coin}`,
-      `• 周常折扣：${data.remain_resin_discount_num}/${data.resin_discount_num_limit}`,
-      `• 探索：${data.current_expedition_num}（${
-        data.expeditions.filter((el) => el.status === 'Ongoing').length
-      } 个进行中）`,
-      `请确认是否需要上线处理 _(:з」∠)_`,
-    ].join('\n'),
-    {
-      parse_mode: 'HTML',
-    },
-  )
+    bot.telegram.sendMessage(
+      genshin_alert_notification_chat_id,
+      [
+	`<a href="tg://user?id=${telegram_uid}">@${
+	  telegramUserInfo.user.username || telegramUserInfo.user.first_name
+	}</a> 每日定时通知：`,
+	`• 原粹树脂：${data.current_resin}/${data.max_resin}`,
+	`• 完成日常：${data.finished_task_num}/${data.total_task_num}，${
+	  data.is_extra_task_reward_received ? '已' : '未'
+	}领工资`,
+	`• 洞天宝钱：${data.current_home_coin}/${data.max_home_coin}`,
+	`• 周常折扣：${data.remain_resin_discount_num}/${data.resin_discount_num_limit}`,
+	`• 探索：${data.current_expedition_num}（${
+	  data.expeditions.filter((el) => el.status === 'Ongoing').length
+	} 个进行中）`,
+	`请确认是否需要上线处理 _(:з」∠)_`,
+      ].join('\n'),
+      {
+	parse_mode: 'HTML',
+      },
+    )
+  } catch (ex) {
+    bot.telegram.sendMessage(
+      genshin_alert_notification_chat_id,
+      [
+	`<a href="tg://user?id=${telegram_uid}">@${
+	  telegramUserInfo.user.username || telegramUserInfo.user.first_name
+	}</a> 每日定时通知获取失败，跳过本次日报。具体错误：\n`,
+	`<code>ex</code>`
+      ].join('\n'),
+      {
+	parse_mode: 'HTML',
+      },
+    )
+  }
 }
 
 export async function genshin_resin_daily_notification(bot: Telegraf) {

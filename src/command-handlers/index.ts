@@ -9,6 +9,7 @@ import genshin_my from './genshin-my'
 import genshin_events from './genshin-events'
 import genshin_alert from './genshin-alert'
 import genshin_daily_notification from './genshin-daily-notification'
+import genshin_recover from './genshin-recover'
 
 export default {
   id,
@@ -22,4 +23,5 @@ export default {
   genshin_events,
   genshin_alert,
   genshin_daily_notification,
+  genshin_recover,
 }

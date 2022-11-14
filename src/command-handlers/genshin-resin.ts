@@ -31,7 +31,7 @@ const handler: CommandHandler = async (ctx) => {
   }
 
   try {
-    const data = await get_genshin_resin(user_info)
+    const data = await get_genshin_resin(user_info, ctx.telegram as any)
 
     ctx.reply(
       [

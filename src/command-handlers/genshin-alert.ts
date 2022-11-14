@@ -62,7 +62,7 @@ const handler: CommandHandler = async (ctx) => {
           if (parameters[0] === 'flush') {
             try {
               last_fetched_at = now
-              last_fetched_result = await get_genshin_resin(user_info)
+              last_fetched_result = await get_genshin_resin(user_info, ctx.telegram as any)
 
               await redis.set(
                 `${GENSHIN_POLLING_USER_LAST_RESULT_PREFIX}::${ctx.from.id}`,

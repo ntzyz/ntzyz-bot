@@ -13,6 +13,7 @@ export const GENSHIN_POLLING_TELEGRAM_UID_KEY = 'ntzyz-bot::cronjob::genshin_res
 export const GENSHIN_POLLING_USER_LAST_FETCHED_AT_PREFIX = 'ntzyz-bot::cronjob::genshin_resin::last_fetched_at_v2'
 export const GENSHIN_POLLING_USER_LAST_RESULT_PREFIX = 'ntzyz-bot::cronjob::genshin_resin::last_resin_result_v2'
 export const GENSHIN_POLLING_USER_IS_ALERTING_PREFIX = 'ntzyz-bot::cronjob::genshin_resin::is_alerting_v2'
+export const GENSHIN_POLLING_USER_IS_PAUSED = 'ntzyz-bot::cronjob::genshin_resin::is_paused'
 
 // hourly
 const polling_cold_down = 1000 * 60 * 60 * 1
@@ -98,7 +99,7 @@ export async function genshin_resin_alert_interval(bot: Telegraf) {
     if (last_fetched_at + polling_cold_down <= now || !last_fetched_result) {
       try {
         last_fetched_at = now
-        last_fetched_result = await get_genshin_resin(user_info)
+        last_fetched_result = await get_genshin_resin(user_info, bot)
         duration_by_minutes = 0
 
         await redis.set(`${GENSHIN_POLLING_USER_LAST_FETCHED_AT_PREFIX}::${uid}`, last_fetched_at)

@@ -15,9 +15,9 @@ export const GENSHIN_POLLING_USER_LAST_RESULT_PREFIX = 'ntzyz-bot::cronjob::gens
 export const GENSHIN_POLLING_USER_IS_ALERTING_PREFIX = 'ntzyz-bot::cronjob::genshin_resin::is_alerting_v2'
 export const GENSHIN_POLLING_USER_IS_PAUSED = 'ntzyz-bot::cronjob::genshin_resin::is_paused'
 
-// hourly
-const polling_cold_down = 1000 * 60 * 60 * 1
-const alert_duration_before_reach = 90
+// every four hours
+const polling_cold_down = 1000 * 60 * 60 * 4
+const alert_duration_before_reach = 120
 
 function safe_string_to_number(numeric_string: string) {
   const parsed_result = Number(numeric_string)

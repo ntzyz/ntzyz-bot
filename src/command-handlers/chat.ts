@@ -1,8 +1,16 @@
 import { extract_parameters, get_redis_client } from '../utils'
 import fetch from 'node-fetch'
-import { openai_api_token } from '../config'
+import { openai_api_token, chat_whitelist } from '../config'
 
 const handler: CommandHandler = async (ctx) => {
+  if (!chat_whitelist.includes(ctx.message.chat.id)) {
+    ctx.reply('You shall not access', {
+      reply_to_message_id: ctx.message.message_id,
+      parse_mode: 'MarkdownV2',
+    })
+    return
+  }
+
   const client = get_redis_client()
   const message = ctx.message.text[0] === '/' ? extract_parameters(ctx.message.text).join(' ') : ctx.message.text
   const history = [] as Array<{

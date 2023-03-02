@@ -3,7 +3,9 @@ import fetch from 'node-fetch'
 import { openai_api_token, chat_whitelist } from '../config'
 
 const handler: CommandHandler = async (ctx) => {
-  if (!chat_whitelist.includes(ctx.message.chat.id)) {
+  const chat_id = ctx.message.chat.id
+
+  if (!chat_whitelist.includes(chat_id)) {
     ctx.reply('You shall not access', {
       reply_to_message_id: ctx.message.message_id,
       parse_mode: 'MarkdownV2',
@@ -28,7 +30,7 @@ const handler: CommandHandler = async (ctx) => {
     let cursor = ctx.message.reply_to_message?.message_id
     for (;;) {
       try {
-        const chat_history_item_text = await client.get(`ntzyz-bot::chat-gpt::message::${cursor}`)
+        const chat_history_item_text = await client.get(`ntzyz-bot::chat-gpt::message::${chat_id}::${cursor}`)
         const chat_history_item = (await JSON.parse(chat_history_item_text)) as {
           reply_to_message_id: number
           input: string
@@ -95,7 +97,9 @@ const handler: CommandHandler = async (ctx) => {
       if (data.error.code === 'context_length_exceeded') {
         const erased_message = history.splice(0, Math.max(2, Math.floor(history.length * 0.2)))
 
-        await Promise.all(erased_message.map((item) => client.del(`ntzyz-bot::chat-gpt::message::${item.id}`)))
+        await Promise.all(
+          erased_message.map((item) => client.del(`ntzyz-bot::chat-gpt::message::${chat_id}::${item.id}`)),
+        )
         continue
       }
     }
@@ -117,7 +121,7 @@ const handler: CommandHandler = async (ctx) => {
   }
 
   await client.set(
-    `ntzyz-bot::chat-gpt::message::${reply_result.message_id}`,
+    `ntzyz-bot::chat-gpt::message::${chat_id}::${reply_result.message_id}`,
     JSON.stringify({
       reply_to_message_id: ctx.message.reply_to_message?.message_id,
       input: message,

@@ -62,7 +62,7 @@ const handler: CommandHandler = async (ctx) => {
     ctx.replyWithChatAction('typing')
   }, 1000)
 
-  for (;;) {
+  for (let retry = 0; ; ) {
     const messages = [
       ...history
         .map((item) => [
@@ -105,7 +105,17 @@ const handler: CommandHandler = async (ctx) => {
     }
 
     chat_gpt_reply = data?.choices?.[0]?.message?.content
-    break
+
+    if (chat_gpt_reply) {
+      break
+    }
+
+    if (retry >= 3) {
+      chat_gpt_reply = '重试三次后也没有返回值, 放弃.'
+      break
+    }
+
+    retry++
   }
 
   let reply_result: Awaited<ReturnType<typeof ctx.reply>>

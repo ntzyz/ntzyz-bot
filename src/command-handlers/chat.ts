@@ -1,9 +1,31 @@
 import { extract_parameters, get_redis_client } from '../utils'
 import fetch from 'node-fetch'
-import { openai_api_token, chat_whitelist } from '../config'
+import { openai_api_token, chat_whitelist as static_chat_whitelist } from '../config'
+
+let chat_whitelist: number[] = null
+
+export async function flush_whitelist(): Promise<void> {
+  const client = get_redis_client()
+  try {
+    const whitelist_json = await client.get(`ntzyz-bot::chat-gpt::whitelist`)
+
+    if (!whitelist_json) {
+      throw new Error('empty JSON')
+    }
+
+    chat_whitelist = JSON.parse(whitelist_json)
+  } catch (ex) {
+    console.error(ex)
+    chat_whitelist = static_chat_whitelist
+  }
+}
 
 const handler: CommandHandler = async (ctx) => {
   const chat_id = ctx.message.chat.id
+
+  if (!chat_whitelist) {
+    await flush_whitelist()
+  }
 
   if (!chat_whitelist.includes(chat_id)) {
     ctx.reply('You shall not access', {

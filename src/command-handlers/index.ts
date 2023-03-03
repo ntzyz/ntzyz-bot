@@ -11,6 +11,7 @@ import genshin_alert from './genshin-alert'
 import genshin_daily_notification from './genshin-daily-notification'
 import genshin_recover from './genshin-recover'
 import chat from './chat'
+import chat_gpt_whitelist_add from './chat-gpt-whitelist-add'
 
 export default {
   id,
@@ -26,4 +27,5 @@ export default {
   genshin_daily_notification,
   genshin_recover,
   chat,
+  chat_gpt_whitelist_add,
 }

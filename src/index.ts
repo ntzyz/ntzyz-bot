@@ -39,6 +39,7 @@ bot.command('alert', command_handlers.genshin_alert)
 bot.command('daily_notification', command_handlers.genshin_daily_notification)
 bot.command('recover', command_handlers.genshin_recover)
 bot.command('chat', command_handlers.chat)
+bot.command('chat_gpt_whitelist_add', command_handlers.chat_gpt_whitelist_add)
 
 http_server.post('/:receiverId', (req, res) => webhook_handlers.notification_v1(bot, req, res))
 http_server.post('/v2/updown-bot/:receiverId', (req, res) => webhook_handlers.notification_v2_updown(bot, req, res))

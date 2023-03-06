@@ -50,8 +50,8 @@ function run_all_cron_jobs() {
   genshin_resin_daily_notification(bot).catch(console.error)
 }
 
-// run_all_cron_jobs()
-// setInterval(() => run_all_cron_jobs(), 1000 * 60 * 4)
+run_all_cron_jobs()
+setInterval(() => run_all_cron_jobs(), 1000 * 60 * 4)
 
 if (process.env.NODE_ENV === 'production') {
   const secret_path = `/telegraf/${bot.secretPathComponent()}`

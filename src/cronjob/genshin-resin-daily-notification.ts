@@ -86,8 +86,6 @@ export async function genshin_resin_daily_notification(bot: Telegraf) {
     const current_seconds_of_day =
       new Date().getHours() * 60 * 60 + new Date().getMinutes() * 60 + new Date().getSeconds()
 
-    console.log({ trigger_seconds_of_day, current_seconds_of_day })
-
     if (current_seconds_of_day > trigger_seconds_of_day) {
       try {
         await send_notification(bot, telegram_uid)

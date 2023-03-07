@@ -14,6 +14,7 @@ import chat from './chat'
 import chat_gpt_whitelist_add from './chat-gpt-whitelist-add'
 import chat_snapshot from './chat-snapshot'
 import chat_restore from './chat-restore'
+import chat_export from './chat-export'
 
 export default {
   id,
@@ -32,4 +33,5 @@ export default {
   chat_gpt_whitelist_add,
   chat_snapshot,
   chat_restore,
+  chat_export,
 }

@@ -15,6 +15,8 @@ export const netease_cloud_music_cookie = 'redacted'
 export const openai_api_token = 'redacted'
 export const chat_whitelist = [bot_owner]
 export const chat_snapshot_key = 'redacted'
+export const chat_export_file_prefix = '/dev/shm'
+export const chat_export_web_prefix = 'smb://example.com/dummy/'
 export const genshin_stat_influxdb_host = 'whatever://redacted:1048576'
 export const genshin_user_info: Record<string, GenshinUserInfo> = {
   [bot_owner]: {

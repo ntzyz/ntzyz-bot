@@ -4,7 +4,7 @@ import { randomBytes } from 'node:crypto'
 import { bot_owner, chat_export_file_prefix, chat_export_web_prefix } from '../config'
 
 const handler: CommandHandler = async (ctx) => {
-  if (ctx.from.id !== bot_owner) {
+  if (ctx.from.id !== bot_owner && ctx.chat.type !== 'private') {
     await ctx.reply('You shall not access', {
       reply_to_message_id: ctx.message.message_id,
       parse_mode: 'MarkdownV2',

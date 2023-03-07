@@ -13,7 +13,7 @@ const handler: CommandHandler = async (ctx) => {
 
   const chat_id_text = extract_parameters(ctx.message.text)?.[0]
 
-  if (!/^\d+$/.test(chat_id_text)) {
+  if (!/^(-|)\d+$/.test(chat_id_text)) {
     ctx.reply('Invalid parameters', {
       reply_to_message_id: ctx.message.message_id,
     })

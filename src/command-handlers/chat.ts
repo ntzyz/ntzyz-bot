@@ -15,8 +15,7 @@ export async function flush_whitelist(): Promise<void> {
     }
 
     chat_whitelist = JSON.parse(whitelist_json)
-  } catch (ex) {
-    console.error(ex)
+  } catch {
     chat_whitelist = static_chat_whitelist
   }
 }
@@ -53,23 +52,22 @@ const handler: CommandHandler = async (ctx) => {
   let total_token = 0
   if (ctx.message.reply_to_message?.message_id) {
     let cursor = ctx.message.reply_to_message?.message_id
+    let cursor_chat_id = chat_id
 
     while (total_token <= chat_gpt_token_limit - 300) {
       try {
-        const chat_history_item_text = await client.get(`ntzyz-bot::chat-gpt::message_v2::${chat_id}::${cursor}`)
-        const chat_history_item = (await JSON.parse(chat_history_item_text)) as {
-          reply_to_message_id: number
-          input: string
-          output: string
-          token: number
-          id: number
-        }
+        const chat_history_item_text = await client.get(`ntzyz-bot::chat-gpt::message_v2::${cursor_chat_id}::${cursor}`)
+        const chat_history_item = (await JSON.parse(chat_history_item_text)) as ChatGPT.ChatHistoryItem
 
         chat_history_item.id = cursor
         total_token += chat_history_item.token
         history.unshift(chat_history_item)
 
         cursor = chat_history_item.reply_to_message_id
+
+        if (chat_history_item.reply_to_chat_id) {
+          cursor_chat_id = chat_history_item.reply_to_chat_id
+        }
       } catch {
         break
       }

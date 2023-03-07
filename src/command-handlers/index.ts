@@ -12,6 +12,8 @@ import genshin_daily_notification from './genshin-daily-notification'
 import genshin_recover from './genshin-recover'
 import chat from './chat'
 import chat_gpt_whitelist_add from './chat-gpt-whitelist-add'
+import chat_snapshot from './chat-snapshot'
+import chat_restore from './chat-restore'
 
 export default {
   id,
@@ -28,4 +30,6 @@ export default {
   genshin_recover,
   chat,
   chat_gpt_whitelist_add,
+  chat_snapshot,
+  chat_restore,
 }

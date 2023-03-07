@@ -9,6 +9,17 @@ declare global {
     method?: 'all' | 'get' | 'post' | 'put' | 'delete' | 'patch' | 'options' | 'head'
   }
 
+  namespace ChatGPT {
+    export interface ChatHistoryItem {
+      reply_to_message_id: number
+      reply_to_chat_id?: number
+      input: string
+      output: string
+      token: number
+      id: number
+    }
+  }
+
   namespace AQI {
     export interface AQIResponse {
       status: string

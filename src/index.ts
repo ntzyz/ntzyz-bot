@@ -21,7 +21,10 @@ bot.use(function (ctx, next) {
     )
   }
 
-  if ((ctx.message as any)?.reply_to_message?.from?.id === me.id) {
+  if (
+    (ctx.message as any)?.reply_to_message?.from?.id === me.id &&
+    ((ctx.message as any)?.text as string).charAt(0) !== '/'
+  ) {
     ;(command_handlers.chat as any)(ctx)
   }
 
@@ -42,6 +45,8 @@ bot.command('daily_notification', command_handlers.genshin_daily_notification)
 bot.command('recover', command_handlers.genshin_recover)
 bot.command('chat', command_handlers.chat)
 bot.command('chat_gpt_whitelist_add', command_handlers.chat_gpt_whitelist_add)
+bot.command('chat_snapshot', command_handlers.chat_snapshot)
+bot.command('chat_restore', command_handlers.chat_restore)
 
 http_server.post('/:receiverId', (req, res) => webhook_handlers.notification_v1(bot, req, res))
 http_server.post('/v2/updown-bot/:receiverId', (req, res) => webhook_handlers.notification_v2_updown(bot, req, res))

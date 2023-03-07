@@ -30,6 +30,13 @@ const handler: CommandHandler = async (ctx) => {
     return
   }
 
+  if (chat_id !== ctx.from.id) {
+    ctx.reply('Error: You can not restore token created by other user.', {
+      reply_to_message_id: ctx.message.message_id,
+    })
+    return
+  }
+
   const reply_result = await ctx.reply(
     '<i>chat thread restored successfully, reply this message to continue the chat</i>',
     {

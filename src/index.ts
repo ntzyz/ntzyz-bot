@@ -6,6 +6,8 @@ import { genshin_resin_alert_interval } from './cronjob/genshin-resin-alert'
 import { genshin_resin_daily_notification } from './cronjob/genshin-resin-daily-notification'
 import { get_http_server } from './utils'
 
+const isProd = process.env.NODE_ENV === 'production'
+
 const bot = new Telegraf(bot_token)
 const http_server = get_http_server()
 const me = await bot.telegram.getMe()
@@ -50,10 +52,12 @@ function run_all_cron_jobs() {
   genshin_resin_daily_notification(bot).catch(console.error)
 }
 
-run_all_cron_jobs()
-setInterval(() => run_all_cron_jobs(), 1000 * 60 * 4)
+if (isProd) {
+  run_all_cron_jobs()
+  setInterval(() => run_all_cron_jobs(), 1000 * 60 * 4)
+}
 
-if (process.env.NODE_ENV === 'production') {
+if (isProd) {
   const secret_path = `/telegraf/${bot.secretPathComponent()}`
   bot.telegram.setWebhook(`${webhook_prefix}${secret_path}`)
   http_server.use(bot.webhookCallback(secret_path))

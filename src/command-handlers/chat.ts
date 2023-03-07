@@ -2,6 +2,7 @@ import { extract_parameters, get_redis_client } from '../utils'
 import fetch from 'node-fetch'
 import { openai_api_token, chat_whitelist as static_chat_whitelist } from '../config'
 
+const chat_gpt_token_limit = 4096
 let chat_whitelist: number[] = null
 
 export async function flush_whitelist(): Promise<void> {
@@ -42,25 +43,30 @@ const handler: CommandHandler = async (ctx) => {
     input: string
     output: string
     id: number
+    token: number
   }>
 
   if (!message) {
     return
   }
 
+  let total_token = 0
   if (ctx.message.reply_to_message?.message_id) {
     let cursor = ctx.message.reply_to_message?.message_id
-    for (;;) {
+
+    while (total_token <= chat_gpt_token_limit - 300) {
       try {
-        const chat_history_item_text = await client.get(`ntzyz-bot::chat-gpt::message::${chat_id}::${cursor}`)
+        const chat_history_item_text = await client.get(`ntzyz-bot::chat-gpt::message_v2::${chat_id}::${cursor}`)
         const chat_history_item = (await JSON.parse(chat_history_item_text)) as {
           reply_to_message_id: number
           input: string
           output: string
+          token: number
           id: number
         }
 
         chat_history_item.id = cursor
+        total_token += chat_history_item.token
         history.unshift(chat_history_item)
 
         cursor = chat_history_item.reply_to_message_id
@@ -68,16 +74,18 @@ const handler: CommandHandler = async (ctx) => {
         break
       }
     }
+
     if (history.length === 0) {
       return
     }
   }
 
   let chat_gpt_reply: string = null
+  let token_used: number = 0
   let action_flushed_times = 0
   let action_interval = setInterval(() => {
     action_flushed_times += 1
-    if (chat_gpt_reply || action_flushed_times > 30) {
+    if (chat_gpt_reply || action_flushed_times > 60) {
       clearInterval(action_interval)
       return
     }
@@ -115,25 +123,26 @@ const handler: CommandHandler = async (ctx) => {
 
     const data = (await response.json()) as any
 
-    if (data.error) {
-      if (data.error.code === 'context_length_exceeded') {
-        const erased_message = history.splice(0, Math.max(2, Math.floor(history.length * 0.2)))
+    if (data.error?.code === 'context_length_exceeded' || data?.choices?.[0]?.finish_reason === 'length') {
+      let unused_history = history.shift()
+      total_token -= unused_history.token
+      continue
+    }
 
-        await Promise.all(
-          erased_message.map((item) => client.del(`ntzyz-bot::chat-gpt::message::${chat_id}::${item.id}`)),
-        )
-        continue
-      }
+    if (data.error) {
+      console.log('ERROR from OpenAI API: ', JSON.stringify(data, null, 2))
     }
 
     chat_gpt_reply = data?.choices?.[0]?.message?.content
 
     if (chat_gpt_reply) {
+      token_used = data?.usage?.total_tokens
       break
     }
 
     if (retry >= 3) {
       chat_gpt_reply = '重试三次后也没有返回值, 放弃.'
+      token_used = 0
       break
     }
 
@@ -153,11 +162,12 @@ const handler: CommandHandler = async (ctx) => {
   }
 
   await client.set(
-    `ntzyz-bot::chat-gpt::message::${chat_id}::${reply_result.message_id}`,
+    `ntzyz-bot::chat-gpt::message_v2::${chat_id}::${reply_result.message_id}`,
     JSON.stringify({
       reply_to_message_id: ctx.message.reply_to_message?.message_id,
       input: message,
       output: chat_gpt_reply,
+      token: token_used - total_token,
     }),
   )
 }

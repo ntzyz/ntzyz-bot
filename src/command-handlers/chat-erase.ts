@@ -26,7 +26,7 @@ const handler: CommandHandler = async (ctx) => {
     await client.del(key)
   }
 
-  await ctx.reply(`Erase finished. Total chat deleted: ${keys.length}`, {
+  await ctx.reply(`Erase finished. Total messages deleted: ${keys.length * 2}`, {
     reply_to_message_id: ctx.message.message_id,
   })
 }

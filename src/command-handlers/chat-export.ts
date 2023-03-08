@@ -1,7 +1,7 @@
 import { get_redis_client } from '../utils'
-import { writeFile } from 'node:fs/promises'
+import fetch from 'node-fetch'
 import { randomBytes } from 'node:crypto'
-import { bot_owner, chat_export_file_prefix, chat_export_web_prefix } from '../config'
+import { bot_owner, chat_export_pages_origin, chat_snapshot_key } from '../config'
 
 const handler: CommandHandler = async (ctx) => {
   if (ctx.from.id !== bot_owner && ctx.chat.type !== 'private') {
@@ -50,9 +50,21 @@ const handler: CommandHandler = async (ctx) => {
   }
 
   const name = `${randomBytes(12).toString('hex')}.json`
-  await writeFile(`${chat_export_file_prefix}/${name}`, JSON.stringify(history))
+
+  await fetch(`${chat_export_pages_origin}/api/store`, {
+    body: JSON.stringify({
+      key: chat_snapshot_key,
+      name,
+      data: history,
+    }),
+    method: 'PUT',
+    headers: {
+      'content-type': 'application/json',
+    },
+  })
+
   await ctx.reply(
-    `Export finished successfully, you can view the chat history here: ${chat_export_web_prefix}${name}`,
+    `Export finished successfully, you can view the chat history here: ${chat_export_pages_origin}/?file=${name}`,
     {
       reply_to_message_id: ctx.message.message_id,
     },

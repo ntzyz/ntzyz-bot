@@ -90,6 +90,8 @@ const handler: CommandHandler = async (ctx) => {
     ctx.replyWithChatAction('typing')
   }, 1000)
 
+  const temperature = Number((await client.get(`ntzyz-bot::chat-gpt::config::${ctx.from.id}::temperature`)) || '1')
+
   for (let retry = 0; ; ) {
     const messages = [
       ...history
@@ -116,6 +118,7 @@ const handler: CommandHandler = async (ctx) => {
       body: JSON.stringify({
         model: 'gpt-3.5-turbo',
         messages,
+        temperature,
       }),
     })
 

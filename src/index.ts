@@ -50,6 +50,7 @@ bot.command('chat_restore', command_handlers.chat_restore)
 bot.command('chat_export', command_handlers.chat_export)
 bot.command('chat_erase', command_handlers.chat_erase)
 bot.command('chat_statistics', command_handlers.chat_statistics)
+bot.command('chat_temperature', command_handlers.chat_temperature)
 
 http_server.post('/:receiverId', (req, res) => webhook_handlers.notification_v1(bot, req, res))
 http_server.post('/v2/updown-bot/:receiverId', (req, res) => webhook_handlers.notification_v2_updown(bot, req, res))

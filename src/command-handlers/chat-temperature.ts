@@ -6,10 +6,10 @@ const handler: CommandHandler = async (ctx) => {
 
   if (!/^\d+(|\.\d+)$/.test(value)) {
     await ctx.reply(
-      `Usage: /chat_temperature number\nFor more info, please refer to [Official Documentation](https://platform.openai.com/docs/api-reference/chat/create#chat/create-temperature)`,
+      `Usage: /chat_temperature number\nFor more info, please refer to <a href="https://platform.openai.com/docs/api-reference/chat/create#chat/create-temperature">Official Documentation</a>`,
       {
         reply_to_message_id: ctx.message.message_id,
-        parse_mode: 'Markdown',
+        parse_mode: 'HTML',
         disable_web_page_preview: true,
       },
     )
@@ -19,7 +19,7 @@ const handler: CommandHandler = async (ctx) => {
   const temperature = Number(value)
   if (temperature < 0 || temperature > 2) {
     await ctx.reply(
-      `Error: invalid value, temperature should between 0 and 2.\nFor more info, please refer to [Official Documentation](https://platform.openai.com/docs/api-reference/chat/create#chat/create-temperature)`,
+      `Error: invalid value, temperature should between 0 and 2.\nFor more info, please refer to <a href="https://platform.openai.com/docs/api-reference/chat/create#chat/create-temperature">Official Documentation</a>`,
       {
         reply_to_message_id: ctx.message.message_id,
         parse_mode: 'Markdown',

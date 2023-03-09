@@ -16,6 +16,7 @@ import chat_snapshot from './chat-snapshot'
 import chat_restore from './chat-restore'
 import chat_export from './chat-export'
 import chat_erase from './chat-erase'
+import chat_statistics from './chat-statistics'
 
 export default {
   id,
@@ -36,4 +37,5 @@ export default {
   chat_restore,
   chat_export,
   chat_erase,
+  chat_statistics,
 }

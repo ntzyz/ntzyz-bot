@@ -57,12 +57,11 @@ const handler: CommandHandler = async (ctx) => {
       }
     }
 
-    await ctx.reply(
-      `Statistics for all your chat:\n- Message count: ${count * 2}.\n- Total token used: ${token_count}.`,
-      {
-        reply_to_message_id: ctx.message.message_id,
-      },
-    )
+    const message =
+      ctx.chat.type === 'private' ? 'Statistics for all your chats' : 'Statistics for all chats in this group'
+    await ctx.reply(`${message}:\n- Message count: ${count * 2}.\n- Total token used: ${token_count}.`, {
+      reply_to_message_id: ctx.message.message_id,
+    })
   }
 }
 

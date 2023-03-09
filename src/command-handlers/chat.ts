@@ -20,6 +20,14 @@ export async function flush_whitelist(): Promise<void> {
   }
 }
 
+export async function get_whitelist() {
+  if (!chat_whitelist) {
+    await flush_whitelist()
+  }
+
+  return chat_whitelist
+}
+
 const handler: CommandHandler = async (ctx) => {
   const chat_id = ctx.message.chat.id
 
@@ -37,19 +45,17 @@ const handler: CommandHandler = async (ctx) => {
 
   const client = get_redis_client()
   const message = ctx.message.text[0] === '/' ? extract_parameters(ctx.message.text).join(' ') : ctx.message.text
-  const history = [] as Array<{
-    reply_to_message_id: number
-    input: string
-    output: string
-    id: number
-    token: number
-  }>
+  const history = [] as Array<ChatGPT.ChatHistoryItem & { id: number }>
 
   if (!message) {
     return
   }
 
   let total_token = 0
+  let system_chat_id: number = null
+  let system_message_id: number = null
+  let system_content: string = null
+
   if (ctx.message.reply_to_message?.message_id) {
     let cursor = ctx.message.reply_to_message?.message_id
     let cursor_chat_id = chat_id
@@ -58,6 +64,13 @@ const handler: CommandHandler = async (ctx) => {
       try {
         const chat_history_item_text = await client.get(`ntzyz-bot::chat-gpt::message_v2::${cursor_chat_id}::${cursor}`)
         const chat_history_item = (await JSON.parse(chat_history_item_text)) as ChatGPT.ChatHistoryItem
+
+        if ('system' in chat_history_item) {
+          system_content = chat_history_item.system
+          system_chat_id = cursor_chat_id
+          system_message_id = cursor
+          break
+        }
 
         chat_history_item.id = cursor
         total_token += chat_history_item.token
@@ -68,12 +81,20 @@ const handler: CommandHandler = async (ctx) => {
         if (chat_history_item.reply_to_chat_id) {
           cursor_chat_id = chat_history_item.reply_to_chat_id
         }
+
+        if (chat_history_item.system_chat_id) {
+          system_chat_id = chat_history_item.system_chat_id
+        }
+
+        if (chat_history_item.system_message_id) {
+          system_message_id = chat_history_item.system_message_id
+        }
       } catch {
         break
       }
     }
 
-    if (history.length === 0) {
+    if (history.length === 0 && !system_content) {
       return
     }
   }
@@ -92,23 +113,38 @@ const handler: CommandHandler = async (ctx) => {
 
   const temperature = Number((await client.get(`ntzyz-bot::chat-gpt::config::${ctx.from.id}::temperature`)) || '1')
 
-  for (let retry = 0; ; ) {
-    const messages = [
-      ...history
-        .map((item) => [
-          { role: 'user', content: item.input },
-          {
-            role: 'assistant',
-            content: item.output,
-          },
-        ])
-        .flat(Infinity),
+  const messages = history
+    .map((item) => [
+      { role: 'user', content: item.input },
       {
-        role: 'user',
-        content: message,
+        role: 'assistant',
+        content: item.output,
       },
-    ]
+    ])
+    .flat(Infinity)
 
+  if (system_content) {
+    messages.unshift({
+      role: 'system',
+      content: system_content,
+    })
+  } else if (system_chat_id && system_message_id) {
+    const system_item_text = await client.get(
+      `ntzyz-bot::chat-gpt::message_v2::${system_chat_id}::${system_message_id}`,
+    )
+    const system_item = (await JSON.parse(system_item_text)) as ChatGPT.ChatHistoryItem
+    messages.unshift({
+      role: 'system',
+      content: system_item.system,
+    })
+  }
+
+  messages.push({
+    role: 'user',
+    content: message,
+  })
+
+  for (let retry = 0; ; ) {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -169,6 +205,12 @@ const handler: CommandHandler = async (ctx) => {
       input: message,
       output: chat_gpt_reply,
       token: token_used - total_token,
+      ...(system_chat_id && system_message_id
+        ? {
+            system_chat_id,
+            system_message_id,
+          }
+        : {}),
     }),
   )
 }

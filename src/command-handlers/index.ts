@@ -18,6 +18,7 @@ import chat_export from './chat-export'
 import chat_erase from './chat-erase'
 import chat_statistics from './chat-statistics'
 import chat_temperature from './chat-temperature'
+import chat_system from './chat-system'
 
 export default {
   id,
@@ -40,4 +41,5 @@ export default {
   chat_erase,
   chat_statistics,
   chat_temperature,
+  chat_system,
 }

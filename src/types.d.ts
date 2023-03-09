@@ -13,8 +13,11 @@ declare global {
     export interface ChatHistoryItem {
       reply_to_message_id: number
       reply_to_chat_id?: number
+      system_chat_id?: number
+      system_message_id?: number
       input: string
       output: string
+      system?: string
       token: number
       id: number
     }

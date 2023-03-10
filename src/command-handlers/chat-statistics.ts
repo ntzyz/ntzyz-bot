@@ -15,7 +15,7 @@ const handler: CommandHandler = async (ctx) => {
 
         cursor = chat_history_item.reply_to_message_id
         count += 1
-        token_count += chat_history_item.token
+        token_count += typeof chat_history_item.token === 'number' ? chat_history_item.token : 0;
       } catch {
         break
       }

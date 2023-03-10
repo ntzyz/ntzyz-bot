@@ -145,7 +145,7 @@ const handler: CommandHandler = async (ctx) => {
   })
 
   for (let retry = 0; ; ) {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://api-openai.reverse-proxy.074ec6f331c7.uk/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

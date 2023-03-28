@@ -1,45 +1,22 @@
-import id from './id'
-import echo from './echo'
-import aqi from './aqi'
-import download_music from './download-music'
-import hhsh from './hhsh'
-import genshin_resin from './genshin-resin'
-import genshin_box from './genshin-box'
-import genshin_my from './genshin-my'
-import genshin_events from './genshin-events'
-import genshin_alert from './genshin-alert'
-import genshin_daily_notification from './genshin-daily-notification'
-import genshin_recover from './genshin-recover'
-import chat from './chat'
-import chat_gpt_whitelist_add from './chat-gpt-whitelist-add'
-import chat_snapshot from './chat-snapshot'
-import chat_restore from './chat-restore'
-import chat_export from './chat-export'
-import chat_erase from './chat-erase'
-import chat_statistics from './chat-statistics'
-import chat_temperature from './chat-temperature'
-import chat_system from './chat-system'
-
-export default {
-  id,
-  echo,
-  aqi,
-  download_music,
-  hhsh,
-  genshin_resin,
-  genshin_box,
-  genshin_my,
-  genshin_events,
-  genshin_alert,
-  genshin_daily_notification,
-  genshin_recover,
-  chat,
-  chat_gpt_whitelist_add,
-  chat_snapshot,
-  chat_restore,
-  chat_export,
-  chat_erase,
-  chat_statistics,
-  chat_temperature,
-  chat_system,
-}
+export { default as id } from './id'
+export { default as echo } from './echo'
+export { default as aqi } from './aqi'
+export { default as download_music } from './download-music'
+export { default as hhsh } from './hhsh'
+export { default as genshin_resin } from './genshin-resin'
+export { default as genshin_box } from './genshin-box'
+export { default as genshin_my } from './genshin-my'
+export { default as genshin_events } from './genshin-events'
+export { default as genshin_alert } from './genshin-alert'
+export { default as genshin_daily_notification } from './genshin-daily-notification'
+export { default as genshin_recover } from './genshin-recover'
+export { default as chat } from './chat'
+export { default as chat_gpt_whitelist_add } from './chat-gpt-whitelist-add'
+export { default as chat_snapshot } from './chat-snapshot'
+export { default as chat_restore } from './chat-restore'
+export { default as chat_export } from './chat-export'
+export { default as chat_erase } from './chat-erase'
+export { default as chat_statistics } from './chat-statistics'
+export { default as chat_temperature } from './chat-temperature'
+export { default as chat_system } from './chat-system'
+export { default as chat_verbose } from './chat-verbose'

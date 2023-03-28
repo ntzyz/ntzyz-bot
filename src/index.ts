@@ -1,7 +1,7 @@
 import { Telegraf } from 'telegraf'
 import { bot_token, webhook_prefix } from './config'
-import command_handlers from './command-handlers'
-import webhook_handlers from './webhook-handlers'
+import * as command_handlers from './command-handlers'
+import * as webhook_handlers from './webhook-handlers'
 import { genshin_resin_alert_interval } from './cronjob/genshin-resin-alert'
 import { genshin_resin_daily_notification } from './cronjob/genshin-resin-daily-notification'
 import { get_http_server } from './utils'
@@ -52,6 +52,7 @@ bot.command('chat_erase', command_handlers.chat_erase)
 bot.command('chat_statistics', command_handlers.chat_statistics)
 bot.command('chat_temperature', command_handlers.chat_temperature)
 bot.command('chat_system', command_handlers.chat_system)
+bot.command('chat_verbose', command_handlers.chat_verbose)
 
 http_server.post('/:receiverId', (req, res) => webhook_handlers.notification_v1(bot, req, res))
 http_server.post('/v2/updown-bot/:receiverId', (req, res) => webhook_handlers.notification_v2_updown(bot, req, res))

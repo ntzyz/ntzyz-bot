@@ -10,7 +10,7 @@ const handler: CommandHandler = (ctx) => {
     return
   }
 
-  ctx.reply(parameters.join(' '), {
+  ctx.reply(parameters.join(' ') || 'Pong!', {
     reply_to_message_id: ctx.message.message_id,
   })
 }

@@ -78,6 +78,10 @@ const handler: CommandHandler = async (ctx) => {
           break
         }
 
+	if (typeof chat_history_item.token !== 'number') {
+	  chat_history_item.token = 0;
+	}
+
         chat_history_item.id = cursor
         total_token += chat_history_item.token
         history.unshift(chat_history_item)
@@ -129,8 +133,10 @@ const handler: CommandHandler = async (ctx) => {
     ])
     .flat(Infinity)
 
+  const system_messages: typeof messages = []
+
   if (system_content) {
-    messages.unshift({
+    system_messages.unshift({
       role: 'system',
       content: system_content,
     })
@@ -139,7 +145,7 @@ const handler: CommandHandler = async (ctx) => {
       `ntzyz-bot::chat-gpt::message_v2::${system_chat_id}::${system_message_id}`,
     )
     const system_item = (await JSON.parse(system_item_text)) as ChatGPT.ChatHistoryItem
-    messages.unshift({
+    system_messages.unshift({
       role: 'system',
       content: system_item.system,
     })
@@ -168,7 +174,10 @@ const handler: CommandHandler = async (ctx) => {
       },
       body: JSON.stringify({
         model: 'gpt-3.5-turbo',
-        messages,
+        messages: [
+	  ...system_messages,
+	  ...messages,
+	],
         temperature,
       }),
     })
@@ -187,6 +196,7 @@ const handler: CommandHandler = async (ctx) => {
           parse_mode: 'HTML',
         },
       )
+      messages.splice(0, 2);
       continue
     }
 

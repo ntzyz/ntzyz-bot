@@ -33,7 +33,8 @@ const handler: CommandHandler = async (ctx) => {
   const chat_id = ctx.message.chat.id
 
   if (
-    !(await client.exists(`ntzyz-bot::chat-gpt::message_v2::${chat_id}::${ctx.message.reply_to_message?.message_id}`))
+    ctx.message.reply_to_message?.message_id &&
+    !(await client.exists(`ntzyz-bot::chat-gpt::message_v2::${chat_id}::${ctx.message.reply_to_message.message_id}`))
   ) {
     return
   }

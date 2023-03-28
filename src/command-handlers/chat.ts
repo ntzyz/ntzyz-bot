@@ -46,10 +46,16 @@ const handler: CommandHandler = async (ctx) => {
   const client = get_redis_client()
   const message = ctx.message.text[0] === '/' ? extract_parameters(ctx.message.text).join(' ') : ctx.message.text
   const history = [] as Array<ChatGPT.ChatHistoryItem & { id: number }>
+  let reply_result: Awaited<ReturnType<typeof ctx.reply>>
 
   if (!message) {
     return
   }
+
+  reply_result = await ctx.reply('<i>grabbing chat history...</i>', {
+    reply_to_message_id: ctx.message.message_id,
+    parse_mode: 'HTML',
+  })
 
   let total_token = 0
   let system_chat_id: number = null
@@ -108,7 +114,7 @@ const handler: CommandHandler = async (ctx) => {
       clearInterval(action_interval)
       return
     }
-    ctx.replyWithChatAction('typing')
+    // ctx.replyWithChatAction('typing')
   }, 1000)
 
   const temperature = Number((await client.get(`ntzyz-bot::chat-gpt::config::${ctx.from.id}::temperature`)) || '1')
@@ -144,6 +150,15 @@ const handler: CommandHandler = async (ctx) => {
     content: message,
   })
 
+  ctx.telegram.editMessageText(
+    chat_id,
+    reply_result.message_id,
+    undefined,
+    `<i>waiting API response, history token: ${total_token}...</i>`,
+    {
+      parse_mode: 'HTML',
+    },
+  )
   for (let retry = 0; ; ) {
     const response = await fetch('https://api-openai.reverse-proxy.074ec6f331c7.uk/v1/chat/completions', {
       method: 'POST',
@@ -163,11 +178,29 @@ const handler: CommandHandler = async (ctx) => {
     if (data.error?.code === 'context_length_exceeded' || data?.choices?.[0]?.finish_reason === 'length') {
       let unused_history = history.shift()
       total_token -= unused_history.token
+      ctx.telegram.editMessageText(
+        chat_id,
+        reply_result.message_id,
+        undefined,
+        `<i>token limit exceeded, cutting history to ${total_token} tokens, retrying ...</i>`,
+        {
+          parse_mode: 'HTML',
+        },
+      )
       continue
     }
 
     if (data.error) {
       console.log('ERROR from OpenAI API: ', JSON.stringify(data, null, 2))
+      await ctx.telegram.editMessageText(
+        chat_id,
+        reply_result.message_id,
+        undefined,
+        `<i>error occurred: ${data?.error?.message}, retrying...</i>`,
+        {
+          parse_mode: 'HTML',
+        },
+      )
     }
 
     chat_gpt_reply = data?.choices?.[0]?.message?.content
@@ -178,24 +211,27 @@ const handler: CommandHandler = async (ctx) => {
     }
 
     if (retry >= 3) {
-      chat_gpt_reply = '重试三次后也没有返回值, 放弃.'
-      token_used = 0
-      break
+      await ctx.telegram.editMessageText(
+        chat_id,
+        reply_result.message_id,
+        undefined,
+        `<i>No valid response after 3 retries, stop.</i>`,
+        {
+          parse_mode: 'HTML',
+        },
+      )
+      return
     }
 
     retry++
   }
 
-  let reply_result: Awaited<ReturnType<typeof ctx.reply>>
   try {
-    reply_result = await ctx.reply(chat_gpt_reply, {
-      reply_to_message_id: ctx.message.message_id,
-      parse_mode: 'MarkdownV2',
+    await ctx.telegram.editMessageText(chat_id, reply_result.message_id, undefined, chat_gpt_reply, {
+      parse_mode: 'Markdown',
     })
   } catch {
-    reply_result = await ctx.reply(chat_gpt_reply, {
-      reply_to_message_id: ctx.message.message_id,
-    })
+    await ctx.telegram.editMessageText(chat_id, reply_result.message_id, undefined, chat_gpt_reply)
   }
 
   await client.set(

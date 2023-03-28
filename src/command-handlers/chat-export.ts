@@ -17,6 +17,7 @@ const handler: CommandHandler = async (ctx) => {
   const history = [] as Array<{
     input: string
     output: string
+    system?: string
   }>
 
   if (ctx.message.reply_to_message?.message_id) {
@@ -32,6 +33,7 @@ const handler: CommandHandler = async (ctx) => {
         history.unshift({
           input: chat_history_item.input,
           output: chat_history_item.output,
+          system: chat_history_item.system,
         })
 
         cursor = chat_history_item.reply_to_message_id

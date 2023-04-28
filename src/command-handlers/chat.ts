@@ -186,7 +186,7 @@ const handler: CommandHandler = async (ctx) => {
       reply_result.message_id,
       undefined,
       `<i>waiting API response...</i>\n` +
-        `<i>history token: ${total_token}, message count: system=${system_messages.length}, user=${history.length}</i>`,
+        `<i>model: ${model}, history token: ${total_token}, message count: system=${system_messages.length}, user=${history.length}</i>`,
       {
         parse_mode: 'HTML',
       },

@@ -51,6 +51,7 @@ bot.command('chat_export', command_handlers.chat_export)
 bot.command('chat_erase', command_handlers.chat_erase)
 bot.command('chat_statistics', command_handlers.chat_statistics)
 bot.command('chat_temperature', command_handlers.chat_temperature)
+bot.command('chat_model', command_handlers.chat_model)
 bot.command('chat_system', command_handlers.chat_system)
 bot.command('chat_verbose', command_handlers.chat_verbose)
 

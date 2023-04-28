@@ -60,6 +60,7 @@ const handler: CommandHandler = async (ctx) => {
   }
 
   const temperature = Number((await client.get(`ntzyz-bot::chat-gpt::config::${ctx.from.id}::temperature`)) || '1')
+  const model = (await client.get(`ntzyz-bot::chat-gpt::config::${ctx.from.id}::model`)) || 'gpt-3.5-turbo'
   const verbose = (await client.get(`ntzyz-bot::chat-gpt::config::${ctx.from.id}::verbose`)) === 'on'
 
   if (verbose) {
@@ -200,7 +201,7 @@ const handler: CommandHandler = async (ctx) => {
         Authorization: `Bearer ${openai_api_token}`,
       },
       body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
+        model,
         messages: [...system_messages, ...messages],
         temperature,
       }),

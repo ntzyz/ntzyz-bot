@@ -63,6 +63,21 @@ const handler: CommandHandler = async (ctx) => {
   const model = (await client.get(`ntzyz-bot::chat-gpt::config::${ctx.from.id}::model`)) || 'gpt-3.5-turbo'
   const verbose = (await client.get(`ntzyz-bot::chat-gpt::config::${ctx.from.id}::verbose`)) === 'on'
 
+  if (model === 'gpt-4') {
+    await ctx.reply(
+      [
+        `Sorry, the original OpenAI Account used by bot owner is currently baned due to payment issue. `,
+        'New account has been registered and deployed but still unable to use models like GPT-4. ',
+        'Please manually switch back to <code>gpt-3.5-turbo</code> model or wait for further updates. ',
+      ].join(''),
+      {
+        parse_mode: 'HTML',
+        reply_to_message_id: ctx.message.message_id,
+      },
+    )
+    return
+  }
+
   if (verbose) {
     reply_result = await ctx.reply('<i>grabbing chat history...</i>', {
       reply_to_message_id: ctx.message.message_id,

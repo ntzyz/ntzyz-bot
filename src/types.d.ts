@@ -256,6 +256,13 @@ declare global {
     uid: number
   }
 
+  interface HSRUserInfo {
+    cookie: string
+    uid: number
+    server: string
+    is_overseas: boolean
+  }
+
   namespace GenshinImpact {
     export interface GenshinResinResponse {
       retcode: number
@@ -298,6 +305,28 @@ declare global {
       avatar_side_icon: string
       status: string
       remained_time: string
+    }
+  }
+
+  namespace HSR {
+    export interface HSRStaminaResponse {
+      retcode: number
+      message: string
+      data: {
+        current_stamina: number
+        max_stamina: number
+        stamina_recover_time: number
+        accepted_epedition_num: number
+        total_expedition_num: number
+        expeditions: Expedition[]
+      }
+    }
+
+    export interface Expedition {
+      avatars: string[]
+      status: string
+      remaining_time: number
+      name: string
     }
   }
 

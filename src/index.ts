@@ -55,6 +55,8 @@ bot.command('chat_model', command_handlers.chat_model)
 bot.command('chat_system', command_handlers.chat_system)
 bot.command('chat_verbose', command_handlers.chat_verbose)
 
+bot.command('hsr_stamina', command_handlers.hsr_stamina)
+
 http_server.post('/:receiverId', (req, res) => webhook_handlers.notification_v1(bot, req, res))
 http_server.post('/v2/updown-bot/:receiverId', (req, res) => webhook_handlers.notification_v2_updown(bot, req, res))
 http_server.post('/v2/telegraf/:receiverId', (req, res) => webhook_handlers.notification_v2_telegraf(bot, req, res))

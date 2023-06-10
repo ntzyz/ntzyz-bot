@@ -1,5 +1,5 @@
 import { Telegraf } from 'telegraf'
-import { genshin_alert_notification_chat_id } from '../config'
+import { mihoyo_alert_notification_chat_id } from '../config'
 import { get_genshin_resin, get_redis_client, query_genshin_info } from '../utils'
 
 export const GENSHIN_DAILY_NOTIFICATION_TELEGRAM_UID_KEY = 'ntzyz-bot::cronjob::genshin_daily::telegram_uid_list'
@@ -9,7 +9,7 @@ export const GENSHIN_DAILY_NOTIFICATION_LAST_SENT_AT = 'ntzyz-bot::cronjob::gens
 async function send_notification(bot: Telegraf, telegram_uid: number) {
   let telegramUserInfo: Awaited<ReturnType<typeof bot.telegram.getChatMember>>
   try {
-    telegramUserInfo = await bot.telegram.getChatMember(genshin_alert_notification_chat_id, telegram_uid)
+    telegramUserInfo = await bot.telegram.getChatMember(mihoyo_alert_notification_chat_id, telegram_uid)
   } catch {
     return
   }
@@ -19,7 +19,7 @@ async function send_notification(bot: Telegraf, telegram_uid: number) {
     const data = await get_genshin_resin(user_info, bot)
 
     bot.telegram.sendMessage(
-      genshin_alert_notification_chat_id,
+      mihoyo_alert_notification_chat_id,
       [
         `<a href="tg://user?id=${telegram_uid}">@${
           telegramUserInfo.user.username || telegramUserInfo.user.first_name
@@ -41,7 +41,7 @@ async function send_notification(bot: Telegraf, telegram_uid: number) {
     )
   } catch (ex) {
     bot.telegram.sendMessage(
-      genshin_alert_notification_chat_id,
+      mihoyo_alert_notification_chat_id,
       [
         `<a href="tg://user?id=${telegram_uid}">@${
           telegramUserInfo.user.username || telegramUserInfo.user.first_name

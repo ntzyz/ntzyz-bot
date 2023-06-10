@@ -7,7 +7,7 @@ import {
   get_redis_client,
   query_genshin_info,
 } from '../utils'
-import { genshin_alert_notification_chat_id, genshin_stat_influxdb_host } from '../config'
+import { mihoyo_alert_notification_chat_id, mihoyo_stat_influxdb_host } from '../config'
 
 export const GENSHIN_POLLING_TELEGRAM_UID_KEY = 'ntzyz-bot::cronjob::genshin_resin::telegram_uid_list'
 export const GENSHIN_POLLING_USER_LAST_FETCHED_AT_PREFIX = 'ntzyz-bot::cronjob::genshin_resin::last_fetched_at_v2'
@@ -59,7 +59,7 @@ export async function genshin_resin_alert_interval(bot: Telegraf) {
 
     if (last_fetched_result) {
       try {
-        await fetch(`${genshin_stat_influxdb_host}/write?db=genshin`, {
+        await fetch(`${mihoyo_stat_influxdb_host}/write?db=genshin`, {
           method: 'POST',
           headers: {
             'content-type': 'text/plain; charset=utf-8',
@@ -124,7 +124,7 @@ export async function genshin_resin_alert_interval(bot: Telegraf) {
 
     let telegramUserInfo: Awaited<ReturnType<typeof bot.telegram.getChatMember>>
     try {
-      telegramUserInfo = await bot.telegram.getChatMember(genshin_alert_notification_chat_id, uid)
+      telegramUserInfo = await bot.telegram.getChatMember(mihoyo_alert_notification_chat_id, uid)
     } catch {
       continue
     }
@@ -137,7 +137,7 @@ export async function genshin_resin_alert_interval(bot: Telegraf) {
       if (!is_alerting.resin) {
         is_alerting.resin = true
         bot.telegram.sendMessage(
-          genshin_alert_notification_chat_id,
+          mihoyo_alert_notification_chat_id,
           `<a href="tg://user?id=${uid}">@${
             telegramUserInfo.user.username || telegramUserInfo.user.first_name
           }</a> 距离体力恢复还有约 ${(
@@ -161,7 +161,7 @@ export async function genshin_resin_alert_interval(bot: Telegraf) {
       if (!is_alerting.home_coin) {
         is_alerting.home_coin = true
         bot.telegram.sendMessage(
-          genshin_alert_notification_chat_id,
+          mihoyo_alert_notification_chat_id,
           `<a href="tg://user?id=${uid}">@${
             telegramUserInfo.user.username || telegramUserInfo.user.first_name
           }</a> 距离洞天宝钱溢出恢复还有约 ${(
@@ -185,7 +185,7 @@ export async function genshin_resin_alert_interval(bot: Telegraf) {
       if (!is_alerting.transformer) {
         is_alerting.transformer = true
         bot.telegram.sendMessage(
-          genshin_alert_notification_chat_id,
+          mihoyo_alert_notification_chat_id,
           `<a href="tg://user?id=${uid}">@${
             telegramUserInfo.user.username || telegramUserInfo.user.first_name
           }</a> 参量质变仪冷却完了，可以上线倒垃圾了`,

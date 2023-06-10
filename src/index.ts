@@ -4,6 +4,7 @@ import * as command_handlers from './command-handlers'
 import * as webhook_handlers from './webhook-handlers'
 import { genshin_resin_alert_interval } from './cronjob/genshin-resin-alert'
 import { genshin_resin_daily_notification } from './cronjob/genshin-resin-daily-notification'
+import { hsr_stamina_alert_interval } from './cronjob/hsr-stamina-alert'
 import { get_http_server } from './utils'
 
 const isProd = process.env.NODE_ENV === 'production'
@@ -56,6 +57,7 @@ bot.command('chat_system', command_handlers.chat_system)
 bot.command('chat_verbose', command_handlers.chat_verbose)
 
 bot.command('hsr_stamina', command_handlers.hsr_stamina)
+bot.command('hsr_alert', command_handlers.hsr_alert)
 
 http_server.post('/:receiverId', (req, res) => webhook_handlers.notification_v1(bot, req, res))
 http_server.post('/v2/updown-bot/:receiverId', (req, res) => webhook_handlers.notification_v2_updown(bot, req, res))
@@ -64,12 +66,13 @@ http_server.post('/v2/telegraf/:receiverId', (req, res) => webhook_handlers.noti
 function run_all_cron_jobs() {
   genshin_resin_alert_interval(bot).catch(console.error)
   genshin_resin_daily_notification(bot).catch(console.error)
+  hsr_stamina_alert_interval(bot).catch(console.error)
 }
 
-if (isProd) {
-  run_all_cron_jobs()
-  setInterval(() => run_all_cron_jobs(), 1000 * 60 * 4)
-}
+// if (isProd) {
+run_all_cron_jobs()
+setInterval(() => run_all_cron_jobs(), 1000 * 60 * 4)
+// }
 
 if (isProd) {
   const secret_path = `/telegraf/${bot.secretPathComponent()}`

@@ -1,7 +1,7 @@
 import fetch from 'node-fetch'
 import { Telegraf } from 'telegraf'
 import { digest_hoyolab_ds, digest_mihoyo_ds } from './digest-mihoyo-ds'
-import { genshin_alert_notification_chat_id, genshin_stat_influxdb_host } from '../config'
+import { mihoyo_alert_notification_chat_id, mihoyo_stat_influxdb_host } from '../config'
 import { format_genshin_transformer_time } from './format-genshin-transformer-time'
 import { get_redis_client } from './get-redis-client'
 import { GENSHIN_POLLING_USER_IS_PAUSED } from '../cronjob/genshin-resin-alert'
@@ -38,7 +38,7 @@ export async function get_hsr_resin(user_info: HSRUserInfo, bot: Telegraf) {
   }
 
   try {
-    await fetch(`${genshin_stat_influxdb_host}/write?db=hsr`, {
+    await fetch(`${mihoyo_stat_influxdb_host}/write?db=hsr`, {
       method: 'POST',
       headers: {
         'content-type': 'text/plain; charset=utf-8',

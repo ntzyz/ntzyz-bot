@@ -1,7 +1,7 @@
 import fetch from 'node-fetch'
 import { Telegraf } from 'telegraf'
 import { digest_mihoyo_ds } from './digest-mihoyo-ds'
-import { genshin_alert_notification_chat_id, genshin_stat_influxdb_host } from '../config'
+import { mihoyo_alert_notification_chat_id, mihoyo_stat_influxdb_host } from '../config'
 import { format_genshin_transformer_time } from './format-genshin-transformer-time'
 import { get_redis_client } from './get-redis-client'
 import { GENSHIN_POLLING_USER_IS_PAUSED } from '../cronjob/genshin-resin-alert'
@@ -30,7 +30,7 @@ export async function get_genshin_resin(user_info: GenshinUserInfo, bot: Telegra
     await Promise.all([
       redis.setEx(`${GENSHIN_POLLING_USER_IS_PAUSED}::${user_info.uid}`, 86400, 'true'),
       bot.telegram.sendMessage(
-        genshin_alert_notification_chat_id,
+        mihoyo_alert_notification_chat_id,
         [
           `米游社接口触发验证码（UID：${user_info.uid}），定时任务等所有需要获取便签数据的功能将暂停，解决办法：\n`,
           '1. 等待24小时后，机器人自动尝试重试；',
@@ -42,7 +42,7 @@ export async function get_genshin_resin(user_info: GenshinUserInfo, bot: Telegra
       ),
       (async () => {
         try {
-          await fetch(`${genshin_stat_influxdb_host}/write?db=genshin`, {
+          await fetch(`${mihoyo_stat_influxdb_host}/write?db=genshin`, {
             method: 'POST',
             headers: {
               'content-type': 'text/plain; charset=utf-8',
@@ -71,7 +71,7 @@ export async function get_genshin_resin(user_info: GenshinUserInfo, bot: Telegra
   }
 
   try {
-    await fetch(`${genshin_stat_influxdb_host}/write?db=genshin`, {
+    await fetch(`${mihoyo_stat_influxdb_host}/write?db=genshin`, {
       method: 'POST',
       headers: {
         'content-type': 'text/plain; charset=utf-8',

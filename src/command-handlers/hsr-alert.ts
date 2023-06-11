@@ -1,4 +1,5 @@
 import {
+  HSR_POLLING_ALERT_CHAT_ID,
   HSR_POLLING_TELEGRAM_UID_KEY,
   HSR_POLLING_USER_IS_ALERTING_PREFIX,
   HSR_POLLING_USER_LAST_FETCHED_AT_PREFIX,
@@ -36,6 +37,7 @@ const handler: CommandHandler = async (ctx) => {
         }
         uid_list.push(ctx.from.id)
         await redis.set(HSR_POLLING_TELEGRAM_UID_KEY, uid_list.join(','))
+        await redis.set(HSR_POLLING_ALERT_CHAT_ID, ctx.chat.id)
         ctx.reply(`加入成功（UID：${user_info.uid}）`, { reply_to_message_id: ctx.message.message_id })
       }
       break

@@ -8,6 +8,7 @@ export const HSR_POLLING_USER_LAST_FETCHED_AT_PREFIX = 'ntzyz-bot::cronjob::hsr_
 export const HSR_POLLING_USER_LAST_RESULT_PREFIX = 'ntzyz-bot::cronjob::hsr_stamina::last_resin_result_v2'
 export const HSR_POLLING_USER_IS_ALERTING_PREFIX = 'ntzyz-bot::cronjob::hsr_stamina::is_alerting_v2'
 export const HSR_POLLING_USER_IS_PAUSED = 'ntzyz-bot::cronjob::hsr_stamina::is_paused'
+export const HSR_POLLING_ALERT_CHAT_ID = 'ntzyz-bot::cronjob::hsr_stamina::alert_chat_id'
 
 // every four hours
 const polling_cold_down = 1000 * 60 * 60 * 4
@@ -32,6 +33,9 @@ export async function hsr_stamina_alert_interval(bot: Telegraf) {
     ) as Partial<Record<'stamina', boolean>>
     let last_fetched_result: HSR.HSRStaminaResponse['data'] = null
     const user_info = query_hsr_info(uid)
+    const alert_chat_id = Number(
+      (await redis.get(`${HSR_POLLING_ALERT_CHAT_ID}::${uid}`)) || mihoyo_alert_notification_chat_id,
+    )
 
     try {
       last_fetched_result = JSON.parse(last_fetched_json) as HSR.HSRStaminaResponse['data']
@@ -88,7 +92,7 @@ export async function hsr_stamina_alert_interval(bot: Telegraf) {
 
     let telegramUserInfo: Awaited<ReturnType<typeof bot.telegram.getChatMember>>
     try {
-      telegramUserInfo = await bot.telegram.getChatMember(mihoyo_alert_notification_chat_id, uid)
+      telegramUserInfo = await bot.telegram.getChatMember(alert_chat_id, uid)
     } catch {
       continue
     }
@@ -97,7 +101,7 @@ export async function hsr_stamina_alert_interval(bot: Telegraf) {
       if (!is_alerting.stamina) {
         is_alerting.stamina = true
         bot.telegram.sendMessage(
-          mihoyo_alert_notification_chat_id,
+          alert_chat_id,
           `<a href="tg://user?id=${uid}">@${
             telegramUserInfo.user.username || telegramUserInfo.user.first_name
           }</a> 距离体力恢复还有约 ${(

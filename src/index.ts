@@ -2,13 +2,12 @@ import { Telegraf } from 'telegraf'
 import { bot_token, webhook_prefix, openai_api_token, bot_owner } from './config'
 import * as command_handlers from './command-handlers'
 import * as webhook_handlers from './webhook-handlers'
+import * as event_handlers from './event-handlers'
 import { genshin_resin_alert_interval } from './cronjob/genshin-resin-alert'
 import { genshin_resin_daily_notification } from './cronjob/genshin-resin-daily-notification'
 import { hsr_stamina_alert_interval } from './cronjob/hsr-stamina-alert'
 import { get_http_server } from './utils'
-
-import fetch from 'node-fetch'
-import { FormData } from 'formdata-node'
+import { Message } from 'telegraf/typings/core/types/typegram'
 
 const isProd = process.env.NODE_ENV === 'production'
 
@@ -26,8 +25,11 @@ bot.use(function (ctx, next) {
   }
 
   if (
-    (ctx.message as any)?.reply_to_message?.from?.id === me.id &&
-    ((ctx.message as any)?.text as string).charAt(0) !== '/'
+    ((ctx.message as Message.TextMessage)?.reply_to_message?.from?.id === me.id &&
+      (((ctx.message as Message.TextMessage)?.text || '' as string).charAt(0) !== '/') || (
+        ((ctx.message as Message.PhotoMessage).caption || '').indexOf('/chat') === 0 &&
+        (ctx.message as Message.PhotoMessage).photo?.[0]?.file_id
+      ))
   ) {
     ;(command_handlers.chat as any)(ctx)
   }
@@ -35,33 +37,7 @@ bot.use(function (ctx, next) {
   next()
 })
 
-bot.on('voice', async (ctx) => {
-  if (ctx.from.id != bot_owner) {
-    return
-  }
-
-  const link = await ctx.telegram.getFileLink(ctx.message.voice.file_id)
-
-  const voiceBufferResponse = await fetch(link.toString())
-  const voiceBuffer = await voiceBufferResponse.blob()
-
-  const fd = new FormData()
-  fd.append('file', voiceBuffer, 'voice.oga')
-  fd.append('model', 'whisper-1')
-  fd.append('response_format', 'text')
-  fd.append('language', 'zh')
-
-  const apiResponse = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${openai_api_token}`
-    },
-    body: fd as any
-  })
-  const text = await apiResponse.text();
-
-  ctx.reply(text)
-})
+bot.on(...event_handlers.whisper)
 
 bot.command('id', command_handlers.id)
 bot.command('echo', command_handlers.echo)
@@ -100,10 +76,10 @@ function run_all_cron_jobs() {
   hsr_stamina_alert_interval(bot).catch(console.error)
 }
 
-// if (isProd) {
-run_all_cron_jobs()
-setInterval(() => run_all_cron_jobs(), 1000 * 60 * 4)
-// }
+if (isProd) {
+  run_all_cron_jobs()
+  setInterval(() => run_all_cron_jobs(), 1000 * 60 * 4)
+}
 
 if (isProd) {
   const secret_path = `/telegraf/${bot.secretPathComponent()}`

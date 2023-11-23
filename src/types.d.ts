@@ -18,6 +18,7 @@ declare global {
       input: string
       output: string
       system?: string
+      image_url?: string
       token: number
       id: number
     }

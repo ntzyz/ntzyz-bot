@@ -1,6 +1,8 @@
 import { extract_parameters, get_redis_client } from '../utils'
 import fetch from 'node-fetch'
-import { openai_api_token, chat_whitelist as static_chat_whitelist } from '../config'
+import { chat_export_pages_origin, chat_snapshot_key, openai_api_token, chat_whitelist as static_chat_whitelist } from '../config'
+import { Message } from 'telegraf/typings/core/types/typegram'
+import { extname } from 'node:path'
 
 const chat_gpt_token_limit = 4096
 let chat_whitelist: number[] = null
@@ -51,9 +53,42 @@ const handler: CommandHandler = async (ctx) => {
     return
   }
 
-  const message = ctx.message.text[0] === '/' ? extract_parameters(ctx.message.text).join(' ') : ctx.message.text
+  const message = (() => {
+    if ('text' in ctx.message) {
+      return ctx.message.text[0] === '/' ? extract_parameters(ctx.message.text).join(' ') : ctx.message.text
+    }
+
+    if ('photo' in ctx.message) {
+      const text = (ctx.message as Message.PhotoMessage).caption || ''
+      return text === '/' ? extract_parameters(text).join(' ') : text
+    }
+  })()
+  let message_image_url: string
+
   const history = [] as Array<ChatGPT.ChatHistoryItem & { id: number }>
   let reply_result: Awaited<ReturnType<typeof ctx.reply>>
+
+  if ('photo' in ctx.message) {
+    const message = ctx.message as Message.PhotoMessage
+
+    message.photo.sort((a, b) => b.height * b.width - a.height * a.width);
+
+    const link = await ctx.telegram.getFileLink(message.photo[0].file_id)
+    const link_url = link.toString()
+
+    const image_blob_response = await fetch(link_url)
+    const image_blob = await image_blob_response.arrayBuffer()
+    const imageExtension = extname(link_url)
+
+    const upload_filename = `${message.photo[0].file_unique_id}${imageExtension}`
+
+    await fetch(`${chat_export_pages_origin}/api/image?key=${chat_snapshot_key}&name=${encodeURIComponent(upload_filename)}`, {
+      body: Buffer.from(image_blob),
+      method: 'PUT',
+    })
+
+    message_image_url = `${chat_export_pages_origin}/api/chat?file=${encodeURIComponent(upload_filename)}`
+  }
 
   if (!message) {
     return
@@ -149,7 +184,12 @@ const handler: CommandHandler = async (ctx) => {
 
   const messages = history
     .map((item) => [
-      { role: 'user', content: item.input },
+      {
+        role: 'user', content: item.image_url ? [
+          { type: 'text', text: item.input },
+          { type: 'image_url', image_url: item.image_url }
+        ] : item.input
+      },
       {
         role: 'assistant',
         content: item.output,
@@ -177,7 +217,10 @@ const handler: CommandHandler = async (ctx) => {
 
   messages.push({
     role: 'user',
-    content: message,
+    content: message_image_url ? [
+      { type: 'text', text: message },
+      { type: 'image_url', image_url: message_image_url }
+    ] : message,
   })
 
   if (verbose) {
@@ -202,6 +245,7 @@ const handler: CommandHandler = async (ctx) => {
       },
       body: JSON.stringify({
         model,
+        max_tokens: 4096,
         messages: [...system_messages, ...messages],
         temperature,
       }),
@@ -234,7 +278,7 @@ const handler: CommandHandler = async (ctx) => {
           chat_id,
           reply_result.message_id,
           undefined,
-          `<i>error occurred: ${data?.error?.message}, retrying...</i>`,
+          `<i>error occurred: ${data?.error?.message}, retrying (${retry + 1}/3)...</i>`,
           {
             parse_mode: 'HTML',
           },
@@ -301,6 +345,7 @@ const handler: CommandHandler = async (ctx) => {
       input: message,
       output: chat_gpt_reply,
       token: token_used - total_token,
+      image_url: message_image_url,
       ...(system_chat_id && system_message_id
         ? {
             system_chat_id,

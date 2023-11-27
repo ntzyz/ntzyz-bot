@@ -3,9 +3,10 @@ import { Telegraf } from "telegraf"
 import fetch from 'node-fetch'
 import { FormData } from "formdata-node"
 import { get_whitelist } from "../command-handlers/chat"
+import { extname } from 'node:path'
 import { bot_owner, openai_api_token } from "../config"
 
-export default ['voice', async (ctx) => {
+export default (async (ctx) => {
   const whitelist = await get_whitelist()
   const chat_id = ctx.message.chat.id
 
@@ -17,16 +18,24 @@ export default ['voice', async (ctx) => {
     return
   }
 
-  const link = await ctx.telegram.getFileLink((ctx.message as Message.VoiceMessage).voice.file_id)
+  let link: string
+  let response_mode = 'text'
 
-  const voiceBufferResponse = await fetch(link.toString())
+  if ('voice' in ctx.message) {
+    link = (await ctx.telegram.getFileLink((ctx.message as Message.VoiceMessage).voice.file_id)).toString()
+  } else if ('audio' in ctx.message) {
+    link = (await ctx.telegram.getFileLink((ctx.message as Message.AudioMessage).audio.file_id)).toString()
+    response_mode = 'srt'
+  }
+
+  const voiceBufferResponse = await fetch(link)
   const voiceBuffer = await voiceBufferResponse.blob()
 
   const fd = new FormData()
-  fd.append('file', voiceBuffer, 'voice.oga')
+  fd.append('file', voiceBuffer, `voice${extname(link)}`)
   fd.append('model', 'whisper-1')
-  fd.append('response_format', 'text')
-  fd.append('language', 'zh')
+  fd.append('response_format', response_mode)
+  // fd.append('language', 'zh')
 
   const apiResponse = await fetch('https://api.openai.com/v1/audio/transcriptions', {
     method: 'POST',
@@ -40,4 +49,4 @@ export default ['voice', async (ctx) => {
   ctx.reply(text, {
     reply_to_message_id: ctx.message.message_id,
   })
-}] as Parameters<Telegraf['on']>
+}) as Parameters<Telegraf['on']>[1]

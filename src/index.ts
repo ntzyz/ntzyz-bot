@@ -37,7 +37,8 @@ bot.use(function (ctx, next) {
   next()
 })
 
-bot.on(...event_handlers.whisper)
+bot.on('voice', event_handlers.whisper)
+bot.on('audio', event_handlers.whisper)
 
 bot.command('id', command_handlers.id)
 bot.command('echo', command_handlers.echo)

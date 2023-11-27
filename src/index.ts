@@ -27,8 +27,8 @@ bot.use(function (ctx, next) {
   if (
     ((ctx.message as Message.TextMessage)?.reply_to_message?.from?.id === me.id &&
       (((ctx.message as Message.TextMessage)?.text || '' as string).charAt(0) !== '/') || (
-        ((ctx.message as Message.PhotoMessage).caption || '').indexOf('/chat') === 0 &&
-        (ctx.message as Message.PhotoMessage).photo?.[0]?.file_id
+        ((ctx.message as Message.PhotoMessage)?.caption || '').indexOf('/chat') === 0 &&
+        (ctx.message as Message.PhotoMessage)?.photo?.[0]?.file_id
       ))
   ) {
     ;(command_handlers.chat as any)(ctx)

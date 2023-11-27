@@ -237,6 +237,27 @@ const handler: CommandHandler = async (ctx) => {
   }
 
   for (let retry = 0; ; ) {
+    if (retry > 3 && retry !== 0) {
+      if (verbose) {
+        await ctx.telegram.editMessageText(
+          chat_id,
+          reply_result.message_id,
+          undefined,
+          `<i>No valid response after 3 retries, stop.</i>`,
+          {
+            parse_mode: 'HTML',
+          },
+        )
+      } else {
+        chat_gpt_reply = ''
+        await ctx.reply(`<i>No valid response after 3 retries, stop.</i>`, {
+          reply_to_message_id: ctx.message.message_id,
+          parse_mode: 'HTML',
+        })
+      }
+      return
+    }
+
     const response = await fetch('https://api-openai.reverse-proxy.074ec6f331c7.uk/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -245,7 +266,7 @@ const handler: CommandHandler = async (ctx) => {
       },
       body: JSON.stringify({
         model,
-        max_tokens: 4096,
+        max_tokens: /vision/.test(model) ? 4096 : undefined,
         messages: [...system_messages, ...messages],
         temperature,
       }),
@@ -253,8 +274,13 @@ const handler: CommandHandler = async (ctx) => {
 
     const data = (await response.json()) as any
 
-    if (data.error?.code === 'context_length_exceeded' || data?.choices?.[0]?.finish_reason === 'length') {
+    if (data.error?.code === 'context_length_exceeded' && data?.choices?.[0]?.finish_reason === 'length') {
       let unused_history = history.shift()
+
+      if (!unused_history) {
+        break
+      }
+
       total_token -= unused_history.token
       messages.splice(0, 2)
       if (verbose) {
@@ -278,12 +304,14 @@ const handler: CommandHandler = async (ctx) => {
           chat_id,
           reply_result.message_id,
           undefined,
-          `<i>error occurred: ${data?.error?.message}, retrying (${retry + 1}/3)...</i>`,
+          `<i>error occurred: ${data?.error?.message}, retrying (${retry}/3)...</i>`,
           {
             parse_mode: 'HTML',
           },
         )
       }
+      retry++;
+      continue
     }
 
     chat_gpt_reply = data?.choices?.[0]?.message?.content
@@ -291,27 +319,6 @@ const handler: CommandHandler = async (ctx) => {
     if (chat_gpt_reply) {
       token_used = data?.usage?.total_tokens
       break
-    }
-
-    if (retry >= 3) {
-      if (verbose) {
-        await ctx.telegram.editMessageText(
-          chat_id,
-          reply_result.message_id,
-          undefined,
-          `<i>No valid response after 3 retries, stop.</i>`,
-          {
-            parse_mode: 'HTML',
-          },
-        )
-      } else {
-        chat_gpt_reply = ''
-        await ctx.reply(`<i>No valid response after 3 retries, stop.</i>`, {
-          reply_to_message_id: ctx.message.message_id,
-          parse_mode: 'HTML',
-        })
-      }
-      return
     }
 
     retry++

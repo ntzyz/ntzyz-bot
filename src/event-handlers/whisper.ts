@@ -1,9 +1,19 @@
 import { Message } from "telegraf/typings/core/types/typegram"
 import { Telegraf } from "telegraf"
+import fetch from 'node-fetch'
+import { FormData } from "formdata-node"
+import { get_whitelist } from "../command-handlers/chat"
 import { bot_owner, openai_api_token } from "../config"
 
 export default ['voice', async (ctx) => {
-  if (ctx.from.id != bot_owner) {
+  const whitelist = await get_whitelist()
+  const chat_id = ctx.message.chat.id
+
+  if (!whitelist.includes(chat_id)) {
+    ctx.reply('You shall not access', {
+      reply_to_message_id: ctx.message.message_id,
+      parse_mode: 'MarkdownV2',
+    })
     return
   }
 

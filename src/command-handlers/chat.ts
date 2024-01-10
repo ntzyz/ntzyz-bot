@@ -338,10 +338,20 @@ const handler: CommandHandler = async (ctx) => {
         reply_to_message_id: ctx.message.message_id,
         parse_mode: 'Markdown',
       })
-    } catch {
-      reply_result = await ctx.reply(chat_gpt_reply, {
-        reply_to_message_id: ctx.message.message_id,
-      })
+    } catch (ex: any) {
+      console.log(ex)
+      if (ex?.response?.description?.includes('long')) {
+        reply_result = await ctx.telegram.sendDocument(ctx.from.id, {
+          source: Buffer.from(chat_gpt_reply),
+          filename: 'Response.txt'
+        }, {
+          reply_to_message_id: ctx.message.message_id,
+        }) as unknown as Awaited<ReturnType<typeof ctx.reply>>
+      } else {
+        reply_result = await ctx.reply(chat_gpt_reply, {
+          reply_to_message_id: ctx.message.message_id,
+        })
+      }
     }
   }
 

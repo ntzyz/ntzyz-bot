@@ -4,7 +4,9 @@ import fetch from 'node-fetch'
 import { FormData } from "formdata-node"
 import { get_whitelist } from "../command-handlers/chat"
 import { extname } from 'node:path'
-import { bot_owner, openai_api_token } from "../config"
+import { writeFile } from 'node:fs/promises'
+import { bot_owner, openai_api_token, chat_export_pages_origin, chat_snapshot_key } from "../config"
+import { v4 as UUID } from 'uuid'
 
 export default (async (ctx) => {
   const whitelist = await get_whitelist()
@@ -35,7 +37,7 @@ export default (async (ctx) => {
   fd.append('file', voiceBuffer, `voice${extname(link)}`)
   fd.append('model', 'whisper-1')
   fd.append('response_format', response_mode)
-  // fd.append('language', 'zh')
+  fd.append('language', 'zh')
 
   const apiResponse = await fetch('https://api.openai.com/v1/audio/transcriptions', {
     method: 'POST',
@@ -46,7 +48,20 @@ export default (async (ctx) => {
   })
   const text = await apiResponse.text();
 
-  ctx.reply(text, {
-    reply_to_message_id: ctx.message.message_id,
-  })
+  if (response_mode === 'srt') {
+    const filename = `/tmp/${UUID()}.srt`
+
+    await writeFile(filename, text)
+
+    ctx.telegram.sendDocument(ctx.from.id, {
+      source: Buffer.from(text),
+      filename: 'result.srt'
+    }, {
+      reply_to_message_id: ctx.message.message_id,
+    })
+  } else {
+    ctx.reply(text, {
+      reply_to_message_id: ctx.message.message_id,
+    })
+  }
 }) as Parameters<Telegraf['on']>[1]

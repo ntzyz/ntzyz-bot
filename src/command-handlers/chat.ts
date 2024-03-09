@@ -1,6 +1,6 @@
 import { extract_parameters, get_redis_client } from '../utils'
 import fetch from 'node-fetch'
-import { chat_export_pages_origin, chat_snapshot_key, openai_api_token, chat_whitelist as static_chat_whitelist } from '../config'
+import { chat_export_pages_origin, chat_snapshot_key, openai_api_token, chat_whitelist as static_chat_whitelist, claude_api_token } from '../config'
 import { Message } from 'telegraf/typings/core/types/typegram'
 import { extname } from 'node:path'
 
@@ -97,6 +97,7 @@ const handler: CommandHandler = async (ctx) => {
   const temperature = Number((await client.get(`ntzyz-bot::chat-gpt::config::${ctx.from.id}::temperature`)) || '1')
   const model = (await client.get(`ntzyz-bot::chat-gpt::config::${ctx.from.id}::model`)) || 'gpt-3.5-turbo'
   const verbose = (await client.get(`ntzyz-bot::chat-gpt::config::${ctx.from.id}::verbose`)) === 'on'
+  const is_claude = /^claude/.test(model)
 
   if (verbose) {
     reply_result = await ctx.reply('<i>grabbing chat history...</i>', {
@@ -173,14 +174,18 @@ const handler: CommandHandler = async (ctx) => {
   let action_flushed_times = 0
   let action_interval = setInterval(() => {
     action_flushed_times += 1
-    if (chat_gpt_reply || action_flushed_times > 60) {
+    if (chat_gpt_reply || action_flushed_times > 24) {
       clearInterval(action_interval)
       return
     }
     if (!verbose) {
       ctx.replyWithChatAction('typing')
     }
-  }, 1000)
+  }, 5000)
+
+  if (!verbose) {
+    ctx.replyWithChatAction('typing')
+  }
 
   const messages = history
     .map((item) => [
@@ -213,6 +218,7 @@ const handler: CommandHandler = async (ctx) => {
       role: 'system',
       content: system_item.system,
     })
+    system_content = system_item.system
   }
 
   messages.push({
@@ -258,19 +264,34 @@ const handler: CommandHandler = async (ctx) => {
       return
     }
 
-    const response = await fetch('https://api-openai.reverse-proxy.074ec6f331c7.uk/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${openai_api_token}`,
-      },
-      body: JSON.stringify({
-        model,
-        max_tokens: /vision/.test(model) ? 4096 : undefined,
-        messages: [...system_messages, ...messages],
-        temperature,
-      }),
-    })
+    const response = is_claude ? 
+      await fetch('https://api-claude.reverse-proxy.074ec6f331c7.uk/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-KEY': claude_api_token,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+          model,
+          temperature,
+          system: system_content || undefined,
+          messages: messages,
+          max_tokens: 4096,
+        }),
+      }): await fetch('https://api-openai.reverse-proxy.074ec6f331c7.uk/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${openai_api_token}`,
+        },
+        body: JSON.stringify({
+          model,
+          max_tokens: /vision/.test(model) ? 4096 : undefined,
+          messages: [...system_messages, ...messages],
+          temperature,
+        }),
+      })
 
     const data = (await response.json()) as any
 
@@ -298,7 +319,7 @@ const handler: CommandHandler = async (ctx) => {
     }
 
     if (data.error) {
-      console.log('ERROR from OpenAI API: ', JSON.stringify(data, null, 2))
+      console.log('ERROR from API: ', JSON.stringify(data, null, 2))
       if (verbose) {
         await ctx.telegram.editMessageText(
           chat_id,
@@ -314,7 +335,11 @@ const handler: CommandHandler = async (ctx) => {
       continue
     }
 
-    chat_gpt_reply = data?.choices?.[0]?.message?.content
+    if (is_claude) {
+      chat_gpt_reply = data?.content?.[0]?.text
+    } else {
+      chat_gpt_reply = data?.choices?.[0]?.message?.content
+    }
 
     if (chat_gpt_reply) {
       token_used = data?.usage?.total_tokens

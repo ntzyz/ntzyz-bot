@@ -13,6 +13,7 @@ export const genshin_alert_notification_chat_id = process.env.NODE_ENV === 'prod
 export const aqi_token = 'redacted'
 export const netease_cloud_music_cookie = 'redacted'
 export const openai_api_token = 'redacted'
+export const claude_api_token = 'redacted'
 export const chat_whitelist = [bot_owner]
 export const chat_snapshot_key = 'redacted'
 export const chat_export_file_prefix = '/dev/shm'

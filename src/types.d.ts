@@ -24,6 +24,16 @@ declare global {
     }
   }
 
+  namespace Fixer {
+    export interface LatestFXRateResponse {
+      success: boolean,
+      timestamp: number,
+      base: string,
+      date: string,
+      rates: Record<string, number>
+    }
+  }
+
   namespace AQI {
     export interface AQIResponse {
       status: string

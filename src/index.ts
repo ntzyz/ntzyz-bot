@@ -63,6 +63,7 @@ bot.command('chat_temperature', command_handlers.chat_temperature)
 bot.command('chat_model', command_handlers.chat_model)
 bot.command('chat_system', command_handlers.chat_system)
 bot.command('chat_verbose', command_handlers.chat_verbose)
+bot.command('fxc', command_handlers.fxc)
 
 bot.command('hsr_stamina', command_handlers.hsr_stamina)
 bot.command('hsr_alert', command_handlers.hsr_alert)

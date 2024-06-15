@@ -3,6 +3,7 @@ import fetch from 'node-fetch'
 import { chat_export_pages_origin, chat_snapshot_key, openai_api_token, chat_whitelist as static_chat_whitelist, claude_api_token } from '../config'
 import { Message } from 'telegraf/typings/core/types/typegram'
 import { extname } from 'node:path'
+import { available_claude_models, available_openai_models } from './chat-model'
 
 const chat_gpt_token_limit = 4096
 let chat_whitelist: number[] = null
@@ -98,6 +99,14 @@ const handler: CommandHandler = async (ctx) => {
   const model = (await client.get(`ntzyz-bot::chat-gpt::config::${ctx.from.id}::model`)) || 'gpt-3.5-turbo'
   const verbose = (await client.get(`ntzyz-bot::chat-gpt::config::${ctx.from.id}::verbose`)) === 'on'
   const is_claude = /^claude/.test(model)
+  
+  if (!available_claude_models.includes(model) && !available_openai_models.includes(moedl)) {
+    await ctx.reply('<b>ERROR</b>: Unknown model: ' + model + ', please update with /chat_model command.', {
+      reply_to_message_id: ctx.message.message_id,
+      parse_mode: 'HTML',
+    })
+    return
+  }
 
   if (verbose) {
     reply_result = await ctx.reply('<i>grabbing chat history...</i>', {

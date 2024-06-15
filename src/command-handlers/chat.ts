@@ -100,7 +100,7 @@ const handler: CommandHandler = async (ctx) => {
   const verbose = (await client.get(`ntzyz-bot::chat-gpt::config::${ctx.from.id}::verbose`)) === 'on'
   const is_claude = /^claude/.test(model)
   
-  if (!available_claude_models.includes(model) && !available_openai_models.includes(moedl)) {
+  if (!available_claude_models.includes(model) && !available_openai_models.includes(model)) {
     await ctx.reply('<b>ERROR</b>: Unknown model: ' + model + ', please update with /chat_model command.', {
       reply_to_message_id: ctx.message.message_id,
       parse_mode: 'HTML',

@@ -1,6 +1,8 @@
 import fetch from 'node-fetch'
 import { bot_owner, netease_cloud_music_cookie, nmid_white_list_chat_ids } from '../config'
 import { extract_parameters } from '../utils'
+import { Agent as httpsAgent } from 'node:https'
+import { Agent as httpAgent } from 'node:http'
 
 const fetch_options = {
   headers: {
@@ -57,7 +59,7 @@ const handler: CommandHandler = async (ctx) => {
   try {
     const [song_url, song_info] = (await Promise.all(
       [
-        fetch(`https://music.ntzyz.io/song/url?id=${id}&br=192000`, inject_basic_auth(fetch_options)),
+        fetch(`https://music.ntzyz.io/song/url?id=${id}&br=320000`, inject_basic_auth(fetch_options)),
         fetch(`https://music.ntzyz.io/song/detail?ids=${id}`, inject_basic_auth(fetch_options)),
       ].map((promise) => promise.then((response) => response.json())),
     )) as [NeteaseMusic.NeteaseMusicSongURLResponse, NeteaseMusic.NeteaseMusicSongDetailResponse]
@@ -71,7 +73,14 @@ const handler: CommandHandler = async (ctx) => {
       return
     }
 
-    const music_response = await fetch(real_url, fetch_options)
+    const music_response = await fetch(real_url, {
+      ...fetch_options,
+      agent: new (real_url.indexOf('https') === 0 ? httpsAgent : httpAgent)({
+        lookup(hostname, _, cb) {
+          cb(null, '28.1.1.126', 4);
+        }
+      })
+    })
     const music_arraybuffer = await music_response.arrayBuffer()
 
     ctx.replyWithAudio(
